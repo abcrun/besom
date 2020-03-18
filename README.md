@@ -2,7 +2,7 @@
 
 A Javascript Library For Multi-Touch Gestures (tap, longtap, doubletap, rotate, pinch, slide) - Support PC Web Mouse Event
 
-### Installation
+### Installation(will publish soonU)
 
 #### NPM
 
