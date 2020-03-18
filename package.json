@@ -4,8 +4,8 @@
   "description": "A javascript library for multi-touch and mouse gestures(touch, tap, rotate, pinch, slide, swipe) - 移动端/PC端手势库",
   "main": "src/index.js",
   "scripts": {
-    "build": "rm -fr dist && gulp && mv dist/index.js dist/gesture.min.js",
-    "prepublishOnly": "rm -fr dist && gulp && mv dist/index.js dist/gesture.min.js"
+    "build": "rm -fr dist && gulp && mv dist/index.js dist/besom.min.js",
+    "prepublishOnly": "rm -fr dist && gulp && mv dist/index.js dist/besom.min.js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,10 @@
     "缩小",
     "旋转"
   ],
-  "author": "abcrun<hrdesign@163.com>",
+  "author":{
+    "name": "abcrun",
+    "email": "hrdesign@163.com"
+  }, 
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/abcrun/besom/issues"
