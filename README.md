@@ -86,7 +86,7 @@ Besom.create(element, onlydetect)
 ```
 
 * element:HTMLElement.
-* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event callback functions you added when set `true`. 
+* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event callback function when set `true`. 
 
 ###### Gestures Maintainer Methods
 
@@ -94,13 +94,13 @@ Besom.create(element, onlydetect)
 
 * on(event, fn) - add gesture event callback function 
 
-   the callback function will get these arguments - `fn(property, currentGestureEventObject, startGestureEventObject)`
+   the arguments of the event callback function - `fn(property, currentGestureEventObject, startGestureEventObject)`
 
   * `property` - the changed value of the gestures
-  * `currentGestureEventObject` and `startGestureEventObject` is the event object formatted of the event.
-  * `this` in the event callback is an transformable element - more details see bellow.
+  * `currentGestureEventObject` and `startGestureEventObject` is the formatted of the event object.
+  * `this` - refers to a transformable element. more details see bellow.
 
-* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will set true.
+* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will be set true.
 
 * destroy() - destroy the gesture manager and events
 
