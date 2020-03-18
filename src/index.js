@@ -234,41 +234,46 @@
   var bindEvent = function(){
     var that = this, elm = this.element.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
+    var mark;
 
     var slide = function(){
       if(!moveInfo) return;
+      if(!mark) mark = { x:0, y:0 }
 
-      var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx - preoffset.x, y: offsety - preoffset.y };
-      preoffset = { x: offsetx, y: offsety };
+      var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx - mark.x, y: offsety - mark.y };
 
       !that.onlydetect && that.element.translate(offset, 0)
-      trigger.call(that, 'slide', offset, moveInfo, startInfo);
+      trigger.call(that, 'slide', offset , moveInfo, startInfo);
+      mark = { x: offsetx, y: offsety };
 
       animation(slide);
     };
 
-    var pinch = function(){
+    var preincrease = 1, pinch = function(){
       if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
+      if(!mark) mark = 1;
 
-      var scale = that.element.transform.json.scale.x, startlength = startInfo.length, movelength = moveInfo.length, increase = movelength/startlength;
+      var startlength = startInfo.length, movelength = moveInfo.length, sincrease = movelength/startlength, increase = sincrease/mark;
 
       !that.onlydetect && that.element.scale(increase, 0);
-      trigger.call(that, 'pinch', { preScale: scale, increase: increase, nextScale: increase*scale }, moveInfo, startInfo);
+      trigger.call(that, 'pinch', increase, moveInfo, startInfo);
+      mark = sincrease;
 
       animation(pinch);
     };
 
     var rotate = function(){
       if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
+      if(!mark) mark = 0;
 
-      var pr = that.element.transform.json.rotate,
-        starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180,
+      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180,
         d0 = distance(movetouches[0], starttouches[0]), d1 = distance(movetouches[1], starttouches[1]), rotatelength0 = d0.length, rotatelength1 = d1.length,
         rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
-        rotateangle = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian;
+        srotateangle = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian, rotateangle = srotateangle - mark;
 
       !that.onlydetect && that.element.rotate(rotateangle, 0);
-      trigger.call(that, 'rotate', { preRotate: pr, nextRotate: pr + rotateangle, increase: rotateangle }, moveInfo, startInfo);
+      trigger.call(that, 'rotate', rotateangle, moveInfo, startInfo);
+      mark = srotateangle;
 
       animation(rotate);
     };
@@ -292,7 +297,7 @@
 
 
     //addEvent
-    var startInfo, moveInfo, preoffset = { x:0, y: 0 }, ismoving;
+    var startInfo, moveInfo, ismoving;
     var start = function(e){
       e.preventDefault();
       startInfo = getTouchInfo(e);
@@ -347,7 +352,7 @@
 
       moveInfo = null;
       ismoving = undefined;
-      preoffset = { x:0, y: 0 };
+      mark = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
