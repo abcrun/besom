@@ -116,7 +116,7 @@ Besom.element(element)
 
 * element - the html element
 * transform - the transform property of the element
-* offset() - return the element offset.left and offset.right in the page
+* offset() - return the element offset.left and offset.top in the page
 * setOrigin(point) - set the element transform origin point({x:number, y:number}), x and y is the relative position in the element matrix.
 * getPointOrigin(point) - get the point({pageX:number, pageY:number) origin in the element matrix
 * translate(offset, duration) - translate offset.x as horizon and offset.y as vertical distance in duration time.
