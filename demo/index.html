@@ -5,32 +5,41 @@
     <meta name="viewport" content="width=device-width" />
     <title>Demo</title>
     <style type="text/css" media="all">
-      span{ display: inline-block; }
+      body{ margin: 0; padding: 0; font-size: 12px;}
+      #demo{ width: 300px; height: 300px; margin-top: 24px; position: relative; background: green; font-weight: bold; }
+      span{ position:absolute; display: inline-block;background: #000; padding: 5px; color: #fff; }
+      .span{ left:0 }
+      .span1{ top: 0; }
+      .span2{ bottom: 0; }
     </style>
   </head>
   <body>
-    <div id="demo" style="width:300px;height:300px;background:green;">
+    <div id="demo">
+      <span class="span span1">Top tap/longtap/slide</span>
+      <span class="span span2">bottom tap/longtap/slide</span>
       <img class="pic" src="./demo.png" style="width:200px" />
-      <span class="span">Hello World</span>
-      <span class="span">Another Span</span>
     </div>
     <script charset="utf-8" src="../src/index.js"></script>
     <script charset="utf-8">
       var g = Besom.create(document.getElementById('demo'));
-      g.enable('longtap', 'slide');
+      g.enable('longtap', 'slide', 'pinch');
 
-      g.on('tap', function(){ console.log('tap') })
-      g.on('longtap', function(){ console.log('longtap') })
+      g.on('tap', function(){ console.log('parent tap') })
+      g.on('longtap', function(){ console.log('parent longtap') })
 
-      g.on('slide', function(){ console.log('slide') })
-      g.on('slideEnd', function(){ console.log('slideEnd') })
+      g.on('slide', function(){ console.log('parent slide') })
+      g.on('slideEnd', function(){ console.log('parent slideEnd') })
 
-      g.delegate('.span', 'tap', function(){ console.log('delegate span tap') })
+      g.delegate('.span', 'tap', function(){ console.log('className span tap') })
       g.delegate('.span', 'slide', function(a){ this.translate(a) })
+      g.delegate('.span', 'longtap', function(a){console.log('className span longtap') })
 
       g.delegate('.pic', 'tap', function(){ console.log('delegate pic tap') })
       g.delegate('.pic', 'start', function(a){
         console.log('.pic start')
+      })
+      g.delegate('.pic', 'pinch', function(a){
+        this.scale(a.increase)
       })
       g.delegate('.pic', 'slide', function(a){
         this.translate(a)

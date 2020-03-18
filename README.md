@@ -53,29 +53,29 @@ yarn add besom
 
 
 
-More Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
+See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 
 ### Supported Gestures
 
-* 'tap' 
-* 'longtap' 
-* 'doubletap'
-* 'slide'
-* 'pinch'
-* 'rotate'
+* `tap` 
+* `longtap`
+* `doubletap`
+* `slide`
+* `pinch`
+* `rotate`
 
 ### Supported Events
 
-* 'tap': enabled by default
-* 'longtap'
-* 'doubletap'
-* 'start': detect gesture start 
-* 'slide'
-* 'slideEnd'
-* 'pinch'
-* 'pinchEnd'
-* 'rotate'
-* 'rotateEnd'
+* `tap`: enabled by default
+* `longtap`
+* `doubletap`
+* `start`: detect gesture start 
+* `slide`
+* `slideEnd`
+* `pinch`
+* `pinchEnd`
+* `rotate`
+* `rotateEnd`
 
 ### Instace And Methods
 
@@ -91,8 +91,17 @@ Besom.create(element, onlydetect)
 ###### Gestures Maintainer Methods
 
 * enable(gesture), disable(gesture) - enable/disable gestures 
-* on(event, fn) - add gesture event callback function (`this` in the event callback is an transformable element)
+
+* on(event, fn) - add gesture event callback function 
+
+   the callback function will get these arguments - `fn(property, currentGestureEventObject, startGestureEventObject)`
+
+  * `property` - the changed value of the gestures
+  * `currentGestureEventObject` and `startGestureEventObject` is the event object formatted of the event.
+  * `this` in the event callback is an transformable element - more details see bellow.
+
 * delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will set true.
+
 * destroy() - destroy the gesture manager and events
 
 ##### Create Transformable Element
@@ -103,8 +112,10 @@ Besom.element(element)
 
 * element:HTMLElement.
 
-###### Transformable Element Methods
+###### Transformable Element Properties and Methods
 
+* element - the html element
+* transform - the transform property of the element
 * offset() - return the element offset.left and offset.right in the page
 * setOrigin(point) - set the element transform origin point({x:number, y:number}), x and y is the relative position in the element matrix.
 * getPointOrigin(point) - get the point({pageX:number, pageY:number) origin in the element matrix
