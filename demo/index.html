@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Demo</title>
+    <style type="text/css" media="all">
+      span{ display: inline-block; }
+    </style>
+  </head>
+  <body>
+    <div id="demo" style="width:300px;height:300px;background:green;">
+      <img class="pic" src="./demo.png" style="width:200px" />
+      <span class="span">Hello World</span>
+      <span class="span">Another Span</span>
+    </div>
+    <script charset="utf-8" src="../src/index.js"></script>
+    <script charset="utf-8">
+      var g = Besom.create(document.getElementById('demo'));
+      g.enable('longtap', 'slide');
+
+      g.on('tap', function(){ console.log('tap') })
+      g.on('longtap', function(){ console.log('longtap') })
+
+      g.on('slide', function(){ console.log('slide') })
+      g.on('slideEnd', function(){ console.log('slideEnd') })
+
+      g.delegate('.span', 'tap', function(){ console.log('delegate span tap') })
+      g.delegate('.span', 'slide', function(a){ this.translate(a) })
+
+      g.delegate('.pic', 'tap', function(){ console.log('delegate pic tap') })
+      g.delegate('.pic', 'start', function(a){
+        console.log('.pic start')
+      })
+      g.delegate('.pic', 'slide', function(a){
+        this.translate(a)
+      })
+      g.delegate('.pic', 'slideEnd', function(a){
+        console.log('.pic slideEnd')
+      })
+
+    </script>
+  </body>
+</html>
