@@ -1,7 +1,7 @@
 {
   "name": "besom",
   "version": "1.0.0-beta",
-  "description": "A javascript library for multi-touch and mouse gestures(touch, tap, rotate, pinch, slide, swipe) - 移动端/PC端手势库",
+  "description": "A Javascript Library For Multi-Touch Gestures (tap, longtap, doubletap, rotate, pinch, slide) - Support PC Web Mouse Event",
   "main": "src/index.js",
   "scripts": {
     "build": "rm -fr dist && gulp && mv dist/index.js dist/besom.min.js",
@@ -20,7 +20,8 @@
     "zoom",
     "swipe",
     "rotate",
-    "手势",
+    "手势库",
+    "滑动",
     "放大",
     "缩小",
     "旋转"
