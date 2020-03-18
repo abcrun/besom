@@ -81,7 +81,7 @@ See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 
 ##### Create Gestures Maintainer
 
-```
+```javascript
 Besom.create(element, onlydetect)
 ```
 
@@ -106,7 +106,7 @@ Besom.create(element, onlydetect)
 
 ##### Create Transformable Element
 
-```
+```javascript
 Besom.element(element)
 ```
 
