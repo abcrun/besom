@@ -240,10 +240,10 @@
       if(!moveInfo) return;
       if(!mark) mark = { x:0, y:0 }
 
-      var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx - mark.x, y: offsety - mark.y };
+      var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx, y: offsety };
 
       !that.onlydetect && that.element.translate(offset, 0)
-      trigger.call(that, 'slide', offset , moveInfo, startInfo);
+      trigger.call(that, 'slide', {increase: {x: offset.x - mark.x, y: offset.y - mark.y }, total: offset} , moveInfo, startInfo);
       mark = { x: offsetx, y: offsety };
 
       animation(slide);
@@ -256,7 +256,7 @@
       var startlength = startInfo.length, movelength = moveInfo.length, sincrease = movelength/startlength, increase = sincrease/mark;
 
       !that.onlydetect && that.element.scale(increase, 0);
-      trigger.call(that, 'pinch', increase, moveInfo, startInfo);
+      trigger.call(that, 'pinch', {increase: increase, total: sincrease}, moveInfo, startInfo);
       mark = sincrease;
 
       animation(pinch);
@@ -272,7 +272,7 @@
         srotateangle = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian, rotateangle = srotateangle - mark;
 
       !that.onlydetect && that.element.rotate(rotateangle, 0);
-      trigger.call(that, 'rotate', rotateangle, moveInfo, startInfo);
+      trigger.call(that, 'rotate', { increase: rotateangle, total: srotateangle}, moveInfo, startInfo);
       mark = srotateangle;
 
       animation(rotate);
@@ -330,7 +330,7 @@
       if(!ismoving) ismoving = true;
     }
     var end = function(e){
-      var starttouches = startInfo.event, endInfo = getTouchInfo(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name, opt = { duration: duration }
+      var starttouches = startInfo.event, endInfo = getTouchInfo(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name;
 
       e.preventDefault();
       if(e.touches && e.touches.length != 0) return;
@@ -348,7 +348,7 @@
       }
 
       that.element.resetTransform();
-      name && trigger.call(that, name + 'End', opt, endInfo, startInfo)
+      name && trigger.call(that, name + 'End', { duration: duration, total: mark }, endInfo, startInfo)
 
       moveInfo = null;
       ismoving = undefined;
