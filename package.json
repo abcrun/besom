@@ -1,6 +1,6 @@
 {
   "name": "besom",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "A Javascript Library For Multi-Touch Gestures (tap, longtap, doubletap, rotate, pinch, slide) - Support PC Web Mouse Event",
   "main": "src/index.js",
   "scripts": {
