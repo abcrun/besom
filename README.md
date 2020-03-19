@@ -97,7 +97,7 @@ Besom.create(element, onlydetect)
    the arguments of the event callback function - `fn(property, currentGestureEventObject, startGestureEventObject)`
 
   * `property` - the changed value of the gestures
-  * `currentGestureEventObject` and `startGestureEventObject` is the formatted of the event object.
+  * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object.
   * `this` - refers to a transformable element. more details see bellow.
 
 * delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will be set true.

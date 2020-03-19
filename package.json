@@ -26,10 +26,10 @@
     "缩小",
     "旋转"
   ],
-  "author":{
+  "author": {
     "name": "abcrun",
     "email": "hrdesign@163.com"
-  }, 
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/abcrun/besom/issues"
