@@ -35,7 +35,11 @@
       g.delegate('.span', 'longtap', function(a){console.log('className span longtap') })
 
       g.delegate('.pic', 'tap', function(){ console.log('delegate pic tap') })
-      g.delegate('.pic', 'start', function(a){
+      g.delegate('.pic', 'start', function(a, e){
+        if(e.count == 2){
+          var origin = this.getPointOrigin(e.center);
+          this.setOrigin(origin);
+        }
         console.log('.pic start')
       })
       g.delegate('.pic', 'pinch', function(a){
