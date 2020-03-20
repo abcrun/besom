@@ -234,7 +234,7 @@
   var bindEvent = function(){
     var that = this, elm = this.element.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var mark;
+    var mark, ispinch;
 
     var slide = function(){
       if(!moveInfo) return;
@@ -249,34 +249,40 @@
       animation(slide);
     };
 
-    var preincrease = 1, pinch = function(){
+    var pinchAndRotate = function(){
       if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
-      if(!mark) mark = 1;
 
-      var startlength = startInfo.length, movelength = moveInfo.length, sincrease = movelength/startlength, increase = sincrease/mark;
-
-      !that.onlydetect && that.element.scale(increase, 0);
-      trigger.call(that, 'pinch', {increase: increase, total: sincrease}, moveInfo, startInfo);
-      mark = sincrease;
-
-      animation(pinch);
-    };
-
-    var rotate = function(){
-      if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
-      if(!mark) mark = 0;
-
-      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180,
+      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, totalscale = movelength/startlength,
         d0 = distance(movetouches[0], starttouches[0]), d1 = distance(movetouches[1], starttouches[1]), rotatelength0 = d0.length, rotatelength1 = d1.length,
         rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
-        srotateangle = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian, rotateangle = srotateangle - mark;
+        totalrotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian;
 
-      !that.onlydetect && that.element.rotate(rotateangle, 0);
-      trigger.call(that, 'rotate', { increase: rotateangle, total: srotateangle}, moveInfo, startInfo);
-      mark = srotateangle;
 
-      animation(rotate);
-    };
+      ispinch = ispinch == undefined ? (Math.abs(totalscale - 1) > 0.01 || Math.abs(totalrotate) < .2 ? true : false) : ispinch;
+
+      if(ispinch){
+        if(!mark) mark = 1;
+        var increase = totalscale/mark;
+
+        !that.onlydetect && that.element.scale(increase, 0);
+        trigger.call(that, 'pinch', {increase: increase, total: totalscale}, moveInfo, startInfo);
+        mark = totalscale;
+      }else{
+        if(!mark) mark = 0;
+
+        var index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1;
+        totalrotate = direction * totalrotate;
+
+        var increase = totalrotate - mark;
+
+        !that.onlydetect && that.element.rotate(increase, 0);
+        trigger.call(that, 'rotate', { increase: increase, total: totalrotate}, moveInfo, startInfo);
+        mark = totalrotate;
+      }
+
+      animation(pinchAndRotate);
+
+    }
 
     var tap = function(duration, endInfo, startInfo){
       var that = this, last = this.__lastTouch, name = last && endInfo.time - last.time < 300 ? 'doubletap' : (duration < 200 ? 'tap' : 'longtap');
@@ -318,16 +324,18 @@
 
       moveInfo = getTouchInfo(e);
 
-      if((enabled('slide')) && moveInfo.count == 1 && startInfo.count == 1){
-        !ismoving && animation(slide);
-      }
+      if(!ismoving){
+        if((enabled('slide')) && moveInfo.count == 1 && startInfo.count == 1){
+          animation(slide);
+        }
 
-      if((enabled('pinch') || enabled('rotate')) && moveInfo.count == 2 && startInfo.count == 2 ){
-        if(enabled('pinch')) !ismoving && animation(pinch);
-        else !ismoving && animation(rotate);
-      }
+        if((enabled('pinch') || enabled('rotate')) && moveInfo.count == 2 && startInfo.count == 2){
+          ispinch = enabled('pinch') ? (!enabled('rotate') ? true : undefined) : false;
+          animation(pinchAndRotate)
+        }
 
-      if(!ismoving) ismoving = true;
+        ismoving = true;
+      }
     }
     var end = function(e){
       var starttouches = startInfo.event, endInfo = getTouchInfo(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name;
@@ -353,6 +361,7 @@
       moveInfo = null;
       ismoving = undefined;
       mark = undefined;
+      ispinch = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
@@ -379,14 +388,7 @@
 
   Gesture.prototype = {
     enable: function(){
-      var enabledlist = ['tap', 'longtap', 'doubletap', 'slide', 'pinch', 'rotate'], list = [];
-      for(var a = 0; a < arguments.length; a++) list.push(arguments[a]);
-      list = list.concat(this.enabled);
-
-      if(list.indexOf('pinch') > -1 && list.indexOf('rotate') > -1){
-        throw new Error('At present, please don\'t both enable pinch and rotate!')
-        return;
-      }
+      var enabledlist = ['tap', 'longtap', 'doubletap', 'slide', 'pinch', 'rotate'];
 
       for(var i = 0; i < arguments.length; i++){
         var arg = arguments[i];
