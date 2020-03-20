@@ -242,7 +242,7 @@
 
       var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx, y: offsety };
 
-      !that.onlydetect && that.element.translate(offset, 0)
+      !that.onlydetect && that.element.translate({x: offset.x - mark.x, y: offset.y - mark.y }, 0)
       trigger.call(that, 'slide', {increase: {x: offset.x - mark.x, y: offset.y - mark.y }, total: offset} , moveInfo, startInfo);
       mark = { x: offsetx, y: offsety };
 
