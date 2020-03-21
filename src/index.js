@@ -198,25 +198,34 @@
 
   //event trigger
   var trigger = function(name, options, current, start){
-    var arg = [ options, current, start ], events = this.events, elm = this.element.element, target = start.event[0].target, fn;
+    var arg = [ options, current, start ], events = this.events, elm = this.element.element, target = start.event[0].target, delegates = this.delegates[name], fn;
 
-    while(target != elm){
-      var cls = (target.className || ''), arr = cls.split(' ');
-      if(!cls) return;
+    if(delegates){
+      outer: while(target != elm){
+        var gid = target.getAttribute('__gid');
+        if(gid){
+          fn = delegates[gid];
+          break outer;
+        }else{
+          var cls = (target.className || ''), arr = cls.split(' ');
 
-      for(var i = 0; i < arr.length; i++){
-        var cl = arr[i];
-        if(cl && this.delegates[cl]){
-          fn = (this.delegates[cl] || {})[name];
+          inner:for(var i = 0; i < arr.length; i++){
+            var cl = arr[i];
+            if(cl && delegates[cl]){
+              target.setAttribute('__gid', cl);
+              fn = delegates[cl];
+              break inner;
+            }
+          }
+
+          if(fn) break outer;
+          else target = target.parentNode;
         }
       }
-
-
-      if(fn) break;
-      else target = target.parentNode;
     }
+
     if(fn) fn.apply(new E(target), arg);
-    else if(this.events[name]) this.events[name].apply(new E(elm), arg)
+    else if(this.events[name]) this.events[name].apply(this.element, arg)
   }
 
   var istouch =  'ontouchend' in document;
@@ -261,10 +270,8 @@
       }else{
         if(!mark) mark = 0;
 
-        var index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1;
-        totalrotate = direction * totalrotate;
-
-        var increase = totalrotate - mark;
+        var index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
+          totalrotate = direction * totalrotate, increase = totalrotate - mark;
 
         !that.onlydetect && that.element.rotate(increase, 0);
         trigger.call(that, 'rotate', { increase: increase, total: totalrotate}, moveInfo, startInfo);
@@ -407,8 +414,8 @@
       cls = cls.substring(1);
       this.onlydetect = true;
 
-      this.delegates[cls] = this.delegates[cls] || {};
-      this.delegates[cls][name] = fn;
+      this.delegates[name] = this.delegates[name] || {};
+      this.delegates[name][cls] = fn;
 
     },
     destroy: function(){
