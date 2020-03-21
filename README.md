@@ -66,10 +66,10 @@ See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 
 ### Supported Events
 
-* `tap`: enabled by default
+* `tap`(enabled default)
 * `longtap`
 * `doubletap`
-* `start`: detect gesture start 
+* `start`
 * `slide`
 * `slideEnd`
 * `pinch`
@@ -86,21 +86,31 @@ Besom.create(element, onlydetect)
 ```
 
 * element:HTMLElement.
-* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event callback function when set `true`. 
+* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event function when set `true`. 
 
 ###### Gestures Maintainer Methods
 
 * enable(gesture), disable(gesture) - enable/disable gestures 
 
-* on(event, fn) - add gesture event callback function 
+* on(event, fn) - add gesture event function 
 
-   the arguments of the event callback function - `fn(property, currentGestureEventObject, startGestureEventObject)`
+   the parameter of the event  function - `fn(property, currentGestureEventObject, startGestureEventObject)`
 
   * `property` - the changed value of the gestures
   * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object.
   * `this` - refers to a transformable element. more details see bellow.
 
-* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will be set true.
+* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, `onlydetect` will be set true.
+
+* setOrigin(point) - set the element transform origin point({x:number, y:number}), x and y is the relative position in the element matrix.
+
+* scale(scale, duration) - transition: string(for example: '500ms')
+
+* rotate(rotate, duration)
+
+* translate(offset, duration)
+
+* getPointOrigin(point) - get the point({pageX:number, pageY:number) origin in the element matrix
 
 * destroy() - destroy the gesture manager and events
 
