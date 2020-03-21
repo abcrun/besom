@@ -158,17 +158,6 @@
     }
   }
 
-  //generate gesture id
-  var gid = (function(){
-    var index = -1;
-    return function(elm, id){
-      var str = id || 'besom_' + ++index;
-      if(elm) elm.setAttribute('gid', str);
-
-      return str;
-    }
-  })();
-
   //animation
   var animation = (function(){
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || function(fn){ window.setTimeout(fn, 1000/60) };
@@ -209,23 +198,25 @@
 
   //event trigger
   var trigger = function(name, options, current, start){
-    var that = this, arg = [ options, current, start ], events = this.events, target = start.event[0].target,
-      id = target.getAttribute('gid');
-    if(id){
-      var evt = events[id] || {}, fn = evt[name];
-    }else{
-      for(key in events){
-        var evt = events[key], cls = evt.className || '';
-        if(target.className.split(' ').indexOf(cls) > -1){
-          gid(target, key);
-          fn = evt[name];
-          break;
+    var arg = [ options, current, start ], events = this.events, elm = this.element.element, target = start.event[0].target, fn;
+
+    while(target != elm){
+      var cls = (target.className || ''), arr = cls.split(' ');
+      if(!cls) return;
+
+      for(var i = 0; i < arr.length; i++){
+        var cl = arr[i];
+        if(cl && this.delegates[cl]){
+          fn = (this.delegates[cl] || {})[name];
         }
       }
-    }
 
-    if(!fn) return;
-    fn.apply(new E(target), arg)
+
+      if(fn) break;
+      else target = target.parentNode;
+    }
+    if(fn) fn.apply(new E(target), arg);
+    else if(this.events[name]) this.events[name].apply(new E(elm), arg)
   }
 
   var istouch =  'ontouchend' in document;
@@ -380,6 +371,7 @@
     }
     this.element = new E(elm);
     this.events = {};
+    this.delegates = {};
     this.enabled = [ 'tap' ]; //default
     this.onlydetect = onlydetect || false;
 
@@ -405,11 +397,7 @@
       }
     },
     on: function(name, fn){
-      var id = this.element.element.getAttribute('gid') || gid(this.element.element);//set gid
-      this.events[id] = this.events[id] || {};
-
-      var evt = this.events[id];
-      evt[name] = fn;
+      this.events[name] = fn;
     },
     delegate: function(cls, name, fn){
       if(cls.indexOf('.') < 0){
@@ -419,21 +407,16 @@
       cls = cls.substring(1);
       this.onlydetect = true;
 
-      var id = gid();
-      for(key in this.events){
-        if(this.events[key].className == cls) id = key;
-      }
-      this.events[id] = this.events[id] || {};
+      this.delegates[cls] = this.delegates[cls] || {};
+      this.delegates[cls][name] = fn;
 
-      var evt = this.events[id];
-      evt[name] = fn;
-      evt.className = cls;
     },
     destroy: function(){
       this.element.removeEventListener(istouch ? 'touchstart' : 'mousedown', this.__evtfn, false);
       this.__evtfn == null;
       this.element = null;
       this.events = {};
+      this.delegates = {};
       this.onlydetect = false;
     }
   }
