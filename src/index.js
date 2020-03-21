@@ -397,6 +397,21 @@
         }
       }
     },
+    getPointOrigin: function(point){
+      this.element.getPointOrigin(point);
+    },
+    setOrigin: function(origin){
+      this.element.setOrigin(origin);
+    },
+    scale: function(scale, transition){
+      this.element.scale(scale, transition);
+    },
+    rotate: function(rotate, transition){
+      this.element.rotate(rotate, transition);
+    },
+    translate: function(offset, transition){
+      this.element.translate(offset, transition);
+    },
     disable: function(){
       for(var i = 0; i < arguments.length; i++){
         var arg = arguments[i], index = this.enabled.indexOf(arg);
