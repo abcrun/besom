@@ -94,17 +94,17 @@ Besom.create(element, onlydetect)
 
 * on(event, fn) - add gesture event function 
 
-   the parameter of the event  function - `fn(property, currentGestureEventObject, startGestureEventObject)`
+   the parameter of the event function - `fn(property, currentGestureEventObject, startGestureEventObject)`
 
-  * `property` - the changed value of the gestures
+  * `property` - the gesture datas of the gestures
   * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object.
-  * `this` - refers to a transformable element. more details see bellow.
+  * `this` - refers to a transformable element. More details see bellow.
 
-* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, `onlydetect` will be set true.
+* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, `onlydetect` will be set `true`.
 
 * setOrigin(point) - set the element transform origin point({x:number, y:number}), x and y is the relative position in the element matrix.
 
-* scale(scale, duration) - transition: string(for example: '500ms')
+* scale(scale, duration) - duration: string(for example: '500ms')
 
 * rotate(rotate, duration)
 
