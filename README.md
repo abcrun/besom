@@ -29,25 +29,20 @@ yarn add besom
 
 ```javascript
   var Besom = require('besom'), g = Besom.create(document.getElementById('demo'));
-  g.enabe('longtap', 'slide', 'pinch');
+  g.enabe('longtap', 'slide', 'pinch', 'rotate');
 
   //bind Event
   g.on('tap', function(){ console.log('tap') }); //tap event is enabled by default
   g.on('longtap', function(){ console.log('longtap') });
-
-  g.on('start', function(){ console.log('gesture start') });//detect the gesture start
 
   g.on('slide', function(){ console.log('slide') });
   g.on('slideEnd', function(){ console.log('slideEnd')  });
 
   g.on('pinch', function(){ console.log('pinch') });
   g.on('pinchEnd', function(){ console.log('pinchEnd') });
-
-  g.delegate('.control-bar', 'start', function(){ console.log('control-bar is slide start') })
-  g.delegate('.control-bar', 'slide', function(){ console.log('control-bar is sliding') })
-  g.delegate('.control-bar', 'slideEnd', function(){ console.log('control-bar slide end') })
-
-  g.disable('slide');
+  
+  g.on('rotate', function(){ console.log('rotate') });
+  g.on('rotateEnd', function(){ console.log('rotateEnd') });
 
 ```
 
