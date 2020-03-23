@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -22,7 +23,7 @@
     <script charset="utf-8" src="../src/index.js"></script>
     <script charset="utf-8">
       var g = Besom.create(document.getElementById('demo'));
-      g.enable('longtap', 'slide', 'pinch');
+      g.enable('longtap', 'slide', 'rotate', 'pinch');
 
       g.on('tap', function(){ console.log('parent tap') })
       g.on('longtap', function(){ console.log('parent longtap') })
@@ -35,7 +36,11 @@
       g.delegate('.span', 'longtap', function(a){console.log('className span longtap') })
 
       g.delegate('.pic', 'tap', function(){ console.log('delegate pic tap') })
-      g.delegate('.pic', 'start', function(a){
+      g.delegate('.pic', 'start', function(a, e){
+        if(e.count == 2){
+          var origin = this.getPointOrigin(e.center);
+          this.setOrigin(origin);
+        }
         console.log('.pic start')
       })
       g.delegate('.pic', 'pinch', function(a){

@@ -158,17 +158,6 @@
     }
   }
 
-  //generate gesture id
-  var gid = (function(){
-    var index = -1;
-    return function(elm, id){
-      var str = id || 'besom_' + ++index;
-      if(elm) elm.setAttribute('gid', str);
-
-      return str;
-    }
-  })();
-
   //animation
   var animation = (function(){
     return window.requestAnimationFrame || window.webkitRequestAnimationFrame || function(fn){ window.setTimeout(fn, 1000/60) };
@@ -209,23 +198,34 @@
 
   //event trigger
   var trigger = function(name, options, current, start){
-    var that = this, arg = [ options, current, start ], events = this.events, target = start.event[0].target,
-      id = target.getAttribute('gid');
-    if(id){
-      var evt = events[id] || {}, fn = evt[name];
-    }else{
-      for(key in events){
-        var evt = events[key], cls = evt.className || '';
-        if(target.className.split(' ').indexOf(cls) > -1){
-          gid(target, key);
-          fn = evt[name];
-          break;
+    var arg = [ options, current, start ], events = this.events, elm = this.element.element, target = start.event[0].target, delegates = this.delegates[name], fn;
+
+    if(delegates){
+      outer: while(target != elm){
+        var gid = target.getAttribute('__gid');
+        if(gid){
+          fn = delegates[gid];
+          break outer;
+        }else{
+          var cls = (target.className || ''), arr = cls.split(' ');
+
+          inner:for(var i = 0; i < arr.length; i++){
+            var cl = arr[i];
+            if(cl && delegates[cl]){
+              target.setAttribute('__gid', cl);
+              fn = delegates[cl];
+              break inner;
+            }
+          }
+
+          if(fn) break outer;
+          else target = target.parentNode;
         }
       }
     }
 
-    if(!fn) return;
-    fn.apply(new E(target), arg)
+    if(fn) fn.apply(new E(target), arg);
+    else if(this.events[name]) this.events[name].apply(this.element, arg)
   }
 
   var istouch =  'ontouchend' in document;
@@ -234,7 +234,7 @@
   var bindEvent = function(){
     var that = this, elm = this.element.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var mark;
+    var mark, ispinch;
 
     var slide = function(){
       if(!moveInfo) return;
@@ -242,41 +242,45 @@
 
       var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx, y: offsety };
 
-      !that.onlydetect && that.element.translate(offset, 0)
+      !that.onlydetect && that.element.translate({x: offset.x - mark.x, y: offset.y - mark.y }, 0)
       trigger.call(that, 'slide', {increase: {x: offset.x - mark.x, y: offset.y - mark.y }, total: offset} , moveInfo, startInfo);
       mark = { x: offsetx, y: offsety };
 
       animation(slide);
     };
 
-    var preincrease = 1, pinch = function(){
+    var pinchAndRotate = function(){
       if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
-      if(!mark) mark = 1;
 
-      var startlength = startInfo.length, movelength = moveInfo.length, sincrease = movelength/startlength, increase = sincrease/mark;
-
-      !that.onlydetect && that.element.scale(increase, 0);
-      trigger.call(that, 'pinch', {increase: increase, total: sincrease}, moveInfo, startInfo);
-      mark = sincrease;
-
-      animation(pinch);
-    };
-
-    var rotate = function(){
-      if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
-      if(!mark) mark = 0;
-
-      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180,
+      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, totalscale = movelength/startlength,
         d0 = distance(movetouches[0], starttouches[0]), d1 = distance(movetouches[1], starttouches[1]), rotatelength0 = d0.length, rotatelength1 = d1.length,
         rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
-        srotateangle = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian, rotateangle = srotateangle - mark;
+        totalrotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian;
 
-      !that.onlydetect && that.element.rotate(rotateangle, 0);
-      trigger.call(that, 'rotate', { increase: rotateangle, total: srotateangle}, moveInfo, startInfo);
-      mark = srotateangle;
 
-      animation(rotate);
-    };
+      ispinch = ispinch == undefined ? (Math.abs(totalscale - 1) > 0.01 || Math.abs(totalrotate) < .2 ? true : false) : ispinch;
+
+      if(ispinch){
+        if(!mark) mark = 1;
+        var increase = totalscale/mark;
+
+        !that.onlydetect && that.element.scale(increase, 0);
+        trigger.call(that, 'pinch', {increase: increase, total: totalscale}, moveInfo, startInfo);
+        mark = totalscale;
+      }else{
+        if(!mark) mark = 0;
+
+        var index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
+          totalrotate = direction * totalrotate, increase = totalrotate - mark;
+
+        !that.onlydetect && that.element.rotate(increase, 0);
+        trigger.call(that, 'rotate', { increase: increase, total: totalrotate}, moveInfo, startInfo);
+        mark = totalrotate;
+      }
+
+      animation(pinchAndRotate);
+
+    }
 
     var tap = function(duration, endInfo, startInfo){
       var that = this, last = this.__lastTouch, name = last && endInfo.time - last.time < 300 ? 'doubletap' : (duration < 200 ? 'tap' : 'longtap');
@@ -318,16 +322,18 @@
 
       moveInfo = getTouchInfo(e);
 
-      if((enabled('slide')) && moveInfo.count == 1 && startInfo.count == 1){
-        !ismoving && animation(slide);
-      }
+      if(!ismoving){
+        if((enabled('slide')) && moveInfo.count == 1 && startInfo.count == 1){
+          animation(slide);
+        }
 
-      if((enabled('pinch') || enabled('rotate')) && moveInfo.count == 2 && startInfo.count == 2 ){
-        if(enabled('pinch')) !ismoving && animation(pinch);
-        else !ismoving && animation(rotate);
-      }
+        if((enabled('pinch') || enabled('rotate')) && moveInfo.count == 2 && startInfo.count == 2){
+          ispinch = enabled('pinch') ? (!enabled('rotate') ? true : undefined) : false;
+          animation(pinchAndRotate)
+        }
 
-      if(!ismoving) ismoving = true;
+        ismoving = true;
+      }
     }
     var end = function(e){
       var starttouches = startInfo.event, endInfo = getTouchInfo(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name;
@@ -353,6 +359,7 @@
       moveInfo = null;
       ismoving = undefined;
       mark = undefined;
+      ispinch = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
@@ -371,6 +378,7 @@
     }
     this.element = new E(elm);
     this.events = {};
+    this.delegates = {};
     this.enabled = [ 'tap' ]; //default
     this.onlydetect = onlydetect || false;
 
@@ -379,14 +387,7 @@
 
   Gesture.prototype = {
     enable: function(){
-      var enabledlist = ['tap', 'longtap', 'doubletap', 'slide', 'pinch', 'rotate'], list = [];
-      for(var a = 0; a < arguments.length; a++) list.push(arguments[a]);
-      list = list.concat(this.enabled);
-
-      if(list.indexOf('pinch') > -1 && list.indexOf('rotate') > -1){
-        throw new Error('At present, please don\'t both enable pinch and rotate!')
-        return;
-      }
+      var enabledlist = ['tap', 'longtap', 'doubletap', 'slide', 'pinch', 'rotate'];
 
       for(var i = 0; i < arguments.length; i++){
         var arg = arguments[i];
@@ -396,6 +397,21 @@
         }
       }
     },
+    getPointOrigin: function(point){
+      this.element.getPointOrigin(point);
+    },
+    setOrigin: function(origin){
+      this.element.setOrigin(origin);
+    },
+    scale: function(scale, transition){
+      this.element.scale(scale, transition);
+    },
+    rotate: function(rotate, transition){
+      this.element.rotate(rotate, transition);
+    },
+    translate: function(offset, transition){
+      this.element.translate(offset, transition);
+    },
     disable: function(){
       for(var i = 0; i < arguments.length; i++){
         var arg = arguments[i], index = this.enabled.indexOf(arg);
@@ -403,11 +419,7 @@
       }
     },
     on: function(name, fn){
-      var id = this.element.element.getAttribute('gid') || gid(this.element.element);//set gid
-      this.events[id] = this.events[id] || {};
-
-      var evt = this.events[id];
-      evt[name] = fn;
+      this.events[name] = fn;
     },
     delegate: function(cls, name, fn){
       if(cls.indexOf('.') < 0){
@@ -417,21 +429,16 @@
       cls = cls.substring(1);
       this.onlydetect = true;
 
-      var id = gid();
-      for(key in this.events){
-        if(this.events[key].className == cls) id = key;
-      }
-      this.events[id] = this.events[id] || {};
+      this.delegates[name] = this.delegates[name] || {};
+      this.delegates[name][cls] = fn;
 
-      var evt = this.events[id];
-      evt[name] = fn;
-      evt.className = cls;
     },
     destroy: function(){
       this.element.removeEventListener(istouch ? 'touchstart' : 'mousedown', this.__evtfn, false);
       this.__evtfn == null;
       this.element = null;
       this.events = {};
+      this.delegates = {};
       this.onlydetect = false;
     }
   }

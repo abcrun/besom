@@ -29,25 +29,20 @@ yarn add besom
 
 ```javascript
   var Besom = require('besom'), g = Besom.create(document.getElementById('demo'));
-  g.enabe('longtap', 'slide', 'pinch');
+  g.enabe('longtap', 'slide', 'pinch', 'rotate');
 
   //bind Event
   g.on('tap', function(){ console.log('tap') }); //tap event is enabled by default
   g.on('longtap', function(){ console.log('longtap') });
-
-  g.on('start', function(){ console.log('gesture start') });//detect the gesture start
 
   g.on('slide', function(){ console.log('slide') });
   g.on('slideEnd', function(){ console.log('slideEnd')  });
 
   g.on('pinch', function(){ console.log('pinch') });
   g.on('pinchEnd', function(){ console.log('pinchEnd') });
-
-  g.delegate('.control-bar', 'start', function(){ console.log('control-bar is slide start') })
-  g.delegate('.control-bar', 'slide', function(){ console.log('control-bar is sliding') })
-  g.delegate('.control-bar', 'slideEnd', function(){ console.log('control-bar slide end') })
-
-  g.disable('slide');
+  
+  g.on('rotate', function(){ console.log('rotate') });
+  g.on('rotateEnd', function(){ console.log('rotateEnd') });
 
 ```
 
@@ -66,10 +61,10 @@ See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 
 ### Supported Events
 
-* `tap`: enabled by default
+* `tap`(enabled default)
 * `longtap`
 * `doubletap`
-* `start`: detect gesture start 
+* `start`
 * `slide`
 * `slideEnd`
 * `pinch`
@@ -86,21 +81,31 @@ Besom.create(element, onlydetect)
 ```
 
 * element:HTMLElement.
-* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event callback function when set `true`. 
+* onlydetect:boolean(default: false) - only detect the gestures and capture the gesture datas to the event function when set `true`. 
 
 ###### Gestures Maintainer Methods
 
 * enable(gesture), disable(gesture) - enable/disable gestures 
 
-* on(event, fn) - add gesture event callback function 
+* on(event, fn) - add gesture event function 
 
-   the arguments of the event callback function - `fn(property, currentGestureEventObject, startGestureEventObject)`
+   the parameter of the event function - `fn(property, currentGestureEventObject, startGestureEventObject)`
 
-  * `property` - the changed value of the gestures
+  * `property` - the gesture datas of the gestures
   * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object.
-  * `this` - refers to a transformable element. more details see bellow.
+  * `this` - refers to a transformable element. More details see bellow.
 
-* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, onlydetect will be set true.
+* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method, `onlydetect` will be set `true`.
+
+* setOrigin(point) - set the element transform origin point({x:number, y:number}), x and y is the relative position in the element matrix.
+
+* scale(scale, duration) - duration: string(for example: '500ms')
+
+* rotate(rotate, duration)
+
+* translate(offset, duration)
+
+* getPointOrigin(point) - get the point({pageX:number, pageY:number) origin in the element matrix
 
 * destroy() - destroy the gesture manager and events
 
