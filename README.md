@@ -1,6 +1,9 @@
-### Besom 
+### The project was transferred to `besom`, Please use the new package `npm install besom` instead.
+
+### j-gestures 
 
 A Javascript Library For Multi-Touch Gestures (tap, longtap, doubletap, rotate, pinch, slide) - Support PC Web Mouse Event
+
 
 ### Installation
 

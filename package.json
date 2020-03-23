@@ -1,6 +1,6 @@
 {
-  "name": "besom",
-  "version": "1.0.3",
+  "name": "j-gestures",
+  "version": "3.0.0",
   "description": "A Javascript Library For Multi-Touch Gestures (tap, longtap, doubletap, rotate, pinch, slide) - Support PC Web Mouse Event",
   "main": "src/index.js",
   "scripts": {
@@ -26,10 +26,12 @@
     "缩小",
     "旋转"
   ],
-  "author": [{
-    "name": "abcrun",
-    "email": "hrdesign@163.com"
-  }],
+  "author": [
+    {
+      "name": "abcrun",
+      "email": "hrdesign@163.com"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/abcrun/besom/issues"
@@ -38,5 +40,8 @@
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-uglify": "^3.0.2"
+  },
+  "dependencies": {
+    "besom": "^1.0.3"
   }
 }
