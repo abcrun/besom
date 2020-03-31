@@ -169,12 +169,12 @@
     return {
       offsetx: x,
       offsety: y,
-      length: Math.sqrt(x*x + y*y)
+      length: parseInt(Math.sqrt(x*x + y*y))
     }
   }
 
-  //touchInfo
-  var getTouchInfo = function(e){
+  //format event
+  var Evt = function(e){
     var touches = (e.touches && e.touches.length) ? e.touches : (e.changedTouches && e.changedTouches.length ? e.changedTouches : [e]), infos = {
       time:new Date().getTime(),
       count: touches.length,
@@ -182,12 +182,9 @@
     };
 
     if(touches.length == 2){
-      var finger1 = touches[0], finger2 = touches[1],
-        x = finger2.pageX - finger1.pageX, y = finger2.pageY - finger1.pageY,
-        length = Math.sqrt(x*x + y*y),
+      var d = distance(touches[0], touches[1]), x = d.offsetx, y = d.offsety, length = d.length,
         offsetx = Math.sqrt(length*length/4 - y*y/4),
-        top = finger1.pageY + y/2,
-        left = finger1.pageX + (x < 0 ? -offsetx : offsetx);
+        top = finger1.pageY + y/2, left = finger1.pageX + (x < 0 ? -offsetx : offsetx);
 
       infos.length = length;
       infos.center = { pageX: left, pageY: top };
@@ -232,54 +229,31 @@
 
   //bind event
   var bindEvent = function(){
-    var that = this, elm = this.element.element;
+    var that = this, elm = this.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var mark, ispinch;
 
-    var slide = function(){
-      if(!moveInfo) return;
-      if(!mark) mark = { x:0, y:0 }
+    var calculate = function(){
+      if(!startInfo || !moveInfo) return;
 
-      var st = startInfo.event[0], mt = moveInfo.event[0], d = distance(st, mt), offsetx = d.offsetx, offsety = d.offsety, offset = { x: offsetx, y: offsety };
+      var starttouches = startInfo.event, movetouches = moveInfo.event, p0 = distance(starttouches[0], movetouches[0]);
+      if(startInfo.count == 1 && moveInfo.count == 1){
+        moveInfo.translate = p0;
+      }else if(startInfo.count == 2 && moveInfo.count == 2){
+        var startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, scale = movelength/startlength;
+        var p1 = distance(movetouches[1], starttouches[1]), rotatelength0 = p0.length, rotatelength1 = p1.length,
+          rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
+          totalrotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian,
+          index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
+          rotate = direction * totalrotate;
 
-      !that.onlydetect && that.element.translate({x: offset.x - mark.x, y: offset.y - mark.y }, 0)
-      trigger.call(that, 'slide', {increase: {x: offset.x - mark.x, y: offset.y - mark.y }, total: offset} , moveInfo, startInfo);
-      mark = { x: offsetx, y: offsety };
-
-      animation(slide);
-    };
-
-    var pinchAndRotate = function(){
-      if(!moveInfo || moveInfo.count != 2 || startInfo.count != 2) return;
-
-      var starttouches = startInfo.event, movetouches = moveInfo.event, startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, totalscale = movelength/startlength,
-        d0 = distance(movetouches[0], starttouches[0]), d1 = distance(movetouches[1], starttouches[1]), rotatelength0 = d0.length, rotatelength1 = d1.length,
-        rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
-        totalrotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian;
-
-
-      ispinch = ispinch == undefined ? (Math.abs(totalscale - 1) > 0.01 || Math.abs(totalrotate) < .2 ? true : false) : ispinch;
-
-      if(ispinch){
-        if(!mark) mark = 1;
-        var increase = totalscale/mark;
-
-        !that.onlydetect && that.element.scale(increase, 0);
-        trigger.call(that, 'pinch', {increase: increase, total: totalscale}, moveInfo, startInfo);
-        mark = totalscale;
-      }else{
-        if(!mark) mark = 0;
-
-        var index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
-          totalrotate = direction * totalrotate, increase = totalrotate - mark;
-
-        !that.onlydetect && that.element.rotate(increase, 0);
-        trigger.call(that, 'rotate', { increase: increase, total: totalrotate}, moveInfo, startInfo);
-        mark = totalrotate;
+        moveInfo.scale = scale;
+        moveInfo.rotate = rotate;
       }
 
-      animation(pinchAndRotate);
+      console.log(moveInfo)
 
+      //yaobai();
+      animation(calculate);
     }
 
     var tap = function(duration, endInfo, startInfo){
@@ -301,65 +275,34 @@
 
 
     //addEvent
-    var startInfo, moveInfo, ismoving;
+    var startInfo, moveInfo, isanimation = false;
     var start = function(e){
       e.preventDefault();
-      startInfo = getTouchInfo(e);
-
-      if(startInfo.count == 2){
-        var startcenter = startInfo.center, origin = that.element.getPointOrigin(startcenter);
-        that.element.setOrigin(origin);
-      }
-
-      trigger.call(that, 'start', null, startInfo, startInfo)
+      startInfo = Evt(e);
 
       elm.addEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
-      elm.addEventListener(istouch ? 'touchend' : 'mouseup', end, false)
-      elm.addEventListener(istouch ? 'touchcancel' : 'mouseleave', end, false)
+      elm.addEventListener(istouch ? 'touchend' : 'mouseup', end, false);
+      elm.addEventListener(istouch ? 'touchcancel' : 'mouseleave', end, false);
     }
     var move = function(e){
       e.preventDefault();
+      moveInfo = Evt(e);
 
-      moveInfo = getTouchInfo(e);
-
-      if(!ismoving){
-        if((enabled('slide')) && moveInfo.count == 1 && startInfo.count == 1){
-          animation(slide);
-        }
-
-        if((enabled('pinch') || enabled('rotate')) && moveInfo.count == 2 && startInfo.count == 2){
-          ispinch = enabled('pinch') ? (!enabled('rotate') ? true : undefined) : false;
-          animation(pinchAndRotate)
-        }
-
-        ismoving = true;
+      if(!isanimation){
+        animation(calculate);
+        isanimation = true;
       }
     }
-    var end = function(e){
-      var starttouches = startInfo.event, endInfo = getTouchInfo(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name;
 
+    var end = function(e){
       e.preventDefault();
       if(e.touches && e.touches.length != 0) return;
 
-      if(startInfo.count == 1){
-        var d = distance(starttouches[0], endtouches[0]), offsetx = d.offsetx, offsety = d.offsety;
+      var starttouches = startInfo.event, endInfo = Evt(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time, name;
 
-        if(Math.abs(offsetx) < 3 && Math.abs(offsety) < 3){
-          tap.call(that, duration, endInfo, startInfo);
-        }else{
-          name = 'slide';
-        }
-      }else{
-        name = enabled('pinch') ? 'pinch' : (enabled('rotate') ? 'rotate' : undefined);
-      }
-
-      that.element.resetTransform();
-      name && trigger.call(that, name + 'End', { duration: duration, total: mark }, endInfo, startInfo)
-
+      startInfo = null;
       moveInfo = null;
-      ismoving = undefined;
-      mark = undefined;
-      ispinch = undefined;
+      isanimation = false;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
@@ -371,17 +314,14 @@
     return start;
   }
 
-  var Gesture = function(elm, onlydetect){
-    if(elm.length){
-      throw new Error('The element parameter shouldn\'t be an array list. If you want to add gestures to these elements, please use delegate method of their parent element');
-      return;
-    }
-    this.element = new E(elm);
+  var rootgid = 'besom-gid-root', Gesture = function(elm){
+    this.element = elm || document.body;
     this.events = {};
     this.delegates = {};
     this.enabled = [ 'tap' ]; //default
-    this.onlydetect = onlydetect || false;
+    this.current = null; //current gesture
 
+    this.element.setAttribute('__gid', rootgid);
     this.__evtfn = bindEvent.call(this);//return event function in order to destroy
   }
 
@@ -397,21 +337,6 @@
         }
       }
     },
-    getPointOrigin: function(point){
-      this.element.getPointOrigin(point);
-    },
-    setOrigin: function(origin){
-      this.element.setOrigin(origin);
-    },
-    scale: function(scale, transition){
-      this.element.scale(scale, transition);
-    },
-    rotate: function(rotate, transition){
-      this.element.rotate(rotate, transition);
-    },
-    translate: function(offset, transition){
-      this.element.translate(offset, transition);
-    },
     disable: function(){
       for(var i = 0; i < arguments.length; i++){
         var arg = arguments[i], index = this.enabled.indexOf(arg);
@@ -419,18 +344,18 @@
       }
     },
     on: function(name, fn){
-      this.events[name] = fn;
+      this.events[name] = this.events['name'] || {};
+      this.events[name][rootgid] = fn;
     },
     delegate: function(cls, name, fn){
       if(cls.indexOf('.') < 0){
-        throw new Error('The parameter cls shoud start width "."!');
+        throw new Error('The arguments[0] shoud start width "."!');
         return;
       }
       cls = cls.substring(1);
-      this.onlydetect = true;
 
-      this.delegates[name] = this.delegates[name] || {};
-      this.delegates[name][cls] = fn;
+      this.events[name] = this.delegates[name] || {};
+      this.events[name][cls] = fn;
 
     },
     destroy: function(){
@@ -439,13 +364,12 @@
       this.element = null;
       this.events = {};
       this.delegates = {};
-      this.onlydetect = false;
     }
   }
 
   return {
-    create: function(elm, onlydetect){
-      return new Gesture(elm, onlydetect || false);
+    create: function(elm){
+      return new Gesture(elm);
     },
     element: function(elm){
       return new E(elm);
