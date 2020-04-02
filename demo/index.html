@@ -32,25 +32,21 @@
       g.on('slideEnd', function(){ console.log('parent slideEnd') })
 
       g.delegate('.span', 'tap', function(){ console.log('className span tap') })
-      g.delegate('.span', 'slide', function(a){ this.translate(a.increase) })
+      g.delegate('.span', 'slide', function(a){ console.log('className span slide') })
       g.delegate('.span', 'longtap', function(a){console.log('className span longtap') })
 
       g.delegate('.pic', 'tap', function(){ console.log('delegate pic tap') })
       g.delegate('.pic', 'start', function(a, e){
-        if(e.count == 2){
-          var origin = this.getPointOrigin(e.center);
-          this.setOrigin(origin);
-        }
         console.log('.pic start')
       })
       g.delegate('.pic', 'pinch', function(a){
-        this.scale(a.increase)
+        console.log('.pic pinch')
       })
       g.delegate('.pic', 'rotate', function(a){
-        this.rotate(a.increase)
+        console.log('.pic rotate')
       })
       g.delegate('.pic', 'slide', function(a){
-        this.translate(a.increase)
+        console.log('.pic slide')
       })
       g.delegate('.pic', 'slideEnd', function(a){
         console.log('.pic slideEnd')
