@@ -25,10 +25,16 @@
       var g = Besom.create(document.getElementById('demo'));
       g.enable('longtap', 'slide', 'rotate', 'pinch');
 
-      g.on('tap', function(){ console.log('parent tap') })
-      g.on('longtap', function(){ console.log('parent longtap') })
+      g.on('tap', function(e, a){ 
+        var origin = this.getOrigin(e.points[0])
+      })
+      g.on('longtap', function(e){ console.log('parent longtap', e) })
 
-      g.on('slide', function(){ console.log('parent slide') })
+      var px, py;
+      g.on('start', function(){console.log('parent start') })
+      g.on('slide', function(c, a){
+        this.translate(c.translate)
+      })
       g.on('slideEnd', function(){ console.log('parent slideEnd') })
 
       g.delegate('.span', 'tap', function(){ console.log('className span tap') })

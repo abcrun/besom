@@ -71,30 +71,7 @@
       var styles = window.getComputedStyle(this.element, false);
       return Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)');
     }
-    //get the point origin
-    var getPointOrigin = function(point){
-      var o = this.offset(), transform = this.transform, toradian = Math.PI/180,
-        origin = transform.origin, scale = transform.scale.x, rotate = transform.rotate, tx = transform.translate.x, ty = transform.translate.y,
-        p = { x: point.pageX - o.left, y: point.pageY - o.top }, offsetx = origin.x - p.x, offsety = origin.y - p.y,
-        point_origin_distance = Math.sqrt(offsetx*offsetx + offsety*offsety)/scale, angle = Math.atan(Math.abs(offsety/offsetx))/toradian, nx, ny;
 
-      if(offsety > 0 && offsetx > 0) toangle = angle - rotate;
-      if(offsety > 0 && offsetx < 0) toangle = 180 - angle - rotate;
-      if(offsety < 0 && offsetx > 0) toangle = angle + rotate;
-      if(offsety < 0 && offsetx < 0) toangle = angle - rotate;
-
-      var dx = point_origin_distance*Math.cos(toangle*toradian), dy = point_origin_distance*Math.sin(toangle*toradian);
-
-      if(offsety > 0 && offsetx > 0) (nx = origin.x - dx) && (ny = origin.y - dy);
-      if(offsety > 0 && offsetx < 0) (nx = origin.x - dx) && (ny = origin.y - dy);
-      if(offsety < 0 && offsetx > 0) (nx = origin.x - dx) && (ny = origin.y + dy);
-      if(offsety < 0 && offsetx < 0) (nx = origin.x + dx) && (ny = origin.y + dy);
-
-      return {
-        x: nx - tx/scale,
-        y: ny - ty/scale
-      }
-    }
     //render
     var render = function(opt, transition){
       var elm = this.element, cssText = elm.style.cssText || '', s = this.transform, transition = transition || '0s',
@@ -129,8 +106,31 @@
         transform.origin = { x: originx, y: originy }
         return transform;
       },
+      getOrigin: function(point){
+        var o = this.offset(), transform = this.transform, toradian = Math.PI/180,
+          origin = transform.origin, scale = transform.scale.x, rotate = transform.rotate, tx = transform.translate.x, ty = transform.translate.y,
+          p = { x: point.pageX - o.left, y: point.pageY - o.top }, offsetx = origin.x - p.x, offsety = origin.y - p.y,
+          point_origin_distance = Math.sqrt(offsetx*offsetx + offsety*offsety)/scale, angle = Math.atan(Math.abs(offsety/offsetx))/toradian, nx, ny;
+
+        if(offsety > 0 && offsetx > 0) toangle = angle - rotate;
+        if(offsety > 0 && offsetx < 0) toangle = 180 - angle - rotate;
+        if(offsety < 0 && offsetx > 0) toangle = angle + rotate;
+        if(offsety < 0 && offsetx < 0) toangle = angle - rotate;
+
+        var dx = point_origin_distance*Math.cos(toangle*toradian), dy = point_origin_distance*Math.sin(toangle*toradian);
+
+        if(offsety > 0 && offsetx > 0) (nx = origin.x - dx) && (ny = origin.y - dy);
+        if(offsety > 0 && offsetx < 0) (nx = origin.x - dx) && (ny = origin.y - dy);
+        if(offsety < 0 && offsetx > 0) (nx = origin.x - dx) && (ny = origin.y + dy);
+        if(offsety < 0 && offsetx < 0) (nx = origin.x + dx) && (ny = origin.y + dy);
+
+        return {
+          x: f3(nx - tx/scale),
+          y: f3(ny - ty/scale)
+        }
+      },
       setOrigin: function(point){
-        var transform = this.transform, preorigin = transform.origin, matrix = getMatrix.call(this), origin = getPointOrigin.call(this, point);
+        var transform = this.transform, preorigin = transform.origin, matrix = getMatrix.call(this), origin = this.getOrigin(point);
         var origin_gridx_inpreorigin = preorigin.x - origin.x, origin_gridy_inpreorigin = preorigin.y - origin.y,
           origin_matrix_inpreorigin = [ [-origin_gridx_inpreorigin], [-origin_gridy_inpreorigin], [1] ], origin_position_inpreorigin = Matrix.mutiply(matrix, origin_matrix_inpreorigin),
           origin_positionx_inpreorigin = origin_position_inpreorigin[0][0] + preorigin.x, origin_positiony_inpreorigin = origin_position_inpreorigin[1][0] + preorigin.y,
@@ -140,21 +140,21 @@
         render.call(this, { translate:{ x: nx, y: ny }, origin: origin })
       },
       translate: function(offset, transition){
-        var translate = this.transform.translate, tx = translate.x, ty = translate.y, nt = {
-          x: tx + offset.x,
-          y: ty + offset.y
-        }
+        if(!offset) return;
 
+        var translate = this.transform.translate, tx = translate.x, ty = translate.y, nt = { x: tx + offset.x, y: ty + offset.y };
         render.call(this, { translate: nt }, transition)
       },
       scale: function(increase, transition){
-        var json = this.transform.json, s = json.scale.x, ns = increase*s;
+        if(!increase) return;
 
+        var json = this.transform.json, s = json.scale.x, ns = increase*s;
         render.call(this, { scale: ns }, transition);
       },
       rotate: function(rotateangle, transition){
-        var json = this.transform.json, r = json.rotate, nr = r + rotateangle;
+        if(!rotateangle) return;
 
+        var json = this.transform.json, r = json.rotate, nr = r + rotateangle;
         render.call(this, { rotate: nr }, transition);
       }
     }
@@ -184,7 +184,8 @@
     var touches = (e.touches && e.touches.length) ? e.touches : (e.changedTouches && e.changedTouches.length ? e.changedTouches : [e]), infos = {
       time:new Date().getTime(),
       count: touches.length,
-      event: touches
+      events: touches,
+      points: [ {pageX: touches[0].pageX, pageY: touches[0].pageY} ]
     };
 
     if(touches.length == 2){
@@ -193,6 +194,7 @@
         top = finger1.pageY + y/2, left = finger1.pageX + (x < 0 ? -offsetx : offsetx);
 
       infos.length = length;
+      infos.points.push({pageX: touches[1].pageX, pageY: touches[1].pageY});
       infos.center = { pageX: left, pageY: top };
     }
 
@@ -201,7 +203,7 @@
 
   //event trigger
   var trigger = function(name, current, start){
-    var arg = [ current, start ], events = this.events, elm = this.element, target = start.event[0].target, events = this.events[name], fn;
+    var arg = [ current, start ], events = this.events, elm = this.element, target = start.events[0].target, events = this.events[name], fn;
 
     if(events){
       if(target == elm){
@@ -239,14 +241,18 @@
   var bindEvent = function(){
     var that = this, elm = this.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var name;
+    var name, mark;
 
     var calculate = function(){
       if(!startInfo || !moveInfo) return;
 
-      var starttouches = startInfo.event, movetouches = moveInfo.event, p0 = distance(starttouches[0], movetouches[0]);
+      var starttouches = startInfo.events, movetouches = moveInfo.events, p0 = distance(starttouches[0], movetouches[0]);
       if(startInfo.count == 1 && moveInfo.count == 1 && enabled('slide') && p0.length > 3){
-        moveInfo.translate = { x: p0.offsetx, y: p0.offsety };
+        var offset = { x: p0.offsetx, y: p0.offsety };
+        if(!mark) mark = { x: 0, y: 0 };
+
+        moveInfo.translate = { x: offset.x - mark.x, y: offset.y - mark.y };
+        mark = offset;
         name = 'slide';
       }else if(startInfo.count == 2 && moveInfo.count == 2){
         var startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, scale = movelength/startlength;
@@ -258,8 +264,15 @@
 
         if(!name) name = enabled('pinch') && enabled('rotate') ? (Math.abs(scale - 1) > 0.01 || Math.abs(rotate) < .2 ? 'pinch' : 'rotate') : (enabled('pinch') ? 'pinch' : 'rotate');
 
-        name == 'pinch' && (moveInfo.scale = scale);
-        name == 'rotate' && (moveInfo.rotate = rotate);
+        if(name == 'pinch'){
+          if(!mark) mark = 1;
+          moveInfo.scale = scale/mark;
+          mark = scale;
+        }else if(name == 'rotate'){
+          if(!mark) mark = 0;
+          moveInfo.rotate = rotate - mark;
+          mark = rotate;
+        }
       }
 
       trigger.call(that, name, moveInfo, startInfo);
@@ -290,6 +303,8 @@
       e.preventDefault();
       startInfo = Evt(e);
 
+      trigger.call(that, 'start', startInfo, startInfo);
+
       elm.addEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.addEventListener(istouch ? 'touchend' : 'mouseup', end, false);
       elm.addEventListener(istouch ? 'touchcancel' : 'mouseleave', end, false);
@@ -308,7 +323,7 @@
       e.preventDefault();
       if(e.touches && e.touches.length != 0) return;
 
-      var starttouches = startInfo.event, endInfo = Evt(e), endtouches = endInfo.event, endTime = endInfo.time, duration = endTime - startInfo.time;
+      var starttouches = startInfo.events, endInfo = Evt(e), endtouches = endInfo.events, endTime = endInfo.time, duration = endTime - startInfo.time;
       endInfo.duration = duration;
 
       if(name) trigger.call(that, name + 'End', startInfo, endInfo);
@@ -318,6 +333,7 @@
       moveInfo = null;
       isanimation = false;
       name = undefined;
+      mark = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
@@ -383,9 +399,6 @@
   return {
     create: function(elm){
       return new Gesture(elm);
-    },
-    element: function(elm){
-      return new E(elm);
     }
   };
 
