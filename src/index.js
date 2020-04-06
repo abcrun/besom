@@ -22,14 +22,6 @@
         var m = (/matrix\((.*)\)/.exec(matrix) || ['',''])[1].split(',');
         if(m.length >= 6) matrix = [ [ f3(m[0]), f3(m[2]), f3(m[4])], [ f3(m[1]), f3(m[3]), f3(m[5])], [0, 0, 1] ];
         else matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-      }else{
-        var t = matrix.translate || 0, s = matrix.scale.x || 1, r = matrix.rotate || 0,
-          r = r * Math.PI/180, sin = f3(Math.sin(r)), cos = f3(Math.cos(r));
-
-        matrix = this.mutiply(this.mutiply(
-          [[1, 0, t.x], [0, 1, t.y],[0, 0, 1]],
-          [[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]]
-        ),[[s, 0, 0], [0, s, 0], [0, 0, 1]]);
       }
 
       return matrix;
@@ -67,26 +59,37 @@
   //element
   var E = (function(){
     //get matrix
-    var getMatrix = function(){
-      var styles = window.getComputedStyle(this.element, false);
+    var getMatrix = function(elm){
+      var styles = window.getComputedStyle(elm, false);
       return Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)');
+    }
+
+    //getTransform
+    var getTransform = function(elm){
+      var styles = window.getComputedStyle(elm, false),
+        matrix = Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)'), origin = styles['transform-origin'].split(' '),
+        transform = Matrix.parse(matrix), originx = f3(origin[0]), originy = f3(origin[1]);
+
+      transform.origin = { x: originx, y: originy }
+      return transform;
     }
 
     //render
     var render = function(opt, transition){
       var elm = this.element, cssText = elm.style.cssText || '', s = this.transform, transition = transition || '0s',
-        origin = opt.origin || s.origin, translate = opt.translate || s.translate, scale = opt.scale || s.scale, rotate = opt.rotate || s.rotate,
+        origin = opt.origin || s.origin, translate = opt.translate || s.translate, scale = opt.scale || s.scale.x, rotate = opt.rotate || s.rotate,
         transition = '-webkit-transition:' + transition + ';',
-        transform = '-webkit-transform: translate(' + f3(translate.x) + 'px, ' + f3(translate.y) + 'px) scale(' + f3(scale.x) + ') rotate(' + f3(rotate) + 'deg);',
+        transform = '-webkit-transform: translate(' + f3(translate.x) + 'px, ' + f3(translate.y) + 'px) scale(' + f3(scale) + ') rotate(' + f3(rotate) + 'deg);',
         origin = '-webkit-transform-origin:' + f3(origin.x) + 'px ' + f3(origin.y) + 'px;';
 
       elm.style.cssText = cssText + ';' + transition + transform + origin;
-      this.transform = { translate: translate, rotate: rotate, scale: scale, origin: origin };
+      this.transform = { translate: translate, rotate: rotate, scale:{ x: scale, y: scale }, origin: origin };
     }
 
+    //constructor
     var $ = function(elm) {
       this.element = elm;
-      this.transform = this.getTransform();
+      this.transform = getTransform(elm);
     }
     $.prototype = {
       offset: function(){
@@ -98,15 +101,7 @@
         }
         return { left: left, top: top }
       },
-      getTransform: function(){
-        var styles = window.getComputedStyle(this.element, false),
-          matrix = Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)'), origin = styles['transform-origin'].split(' '),
-          transform = Matrix.parse(matrix), originx = f3(origin[0]), originy = f3(origin[1]);
-
-        transform.origin = { x: originx, y: originy }
-        return transform;
-      },
-      getOrigin: function(point){
+      getPointOrigin: function(point){
         var o = this.offset(), transform = this.transform, toradian = Math.PI/180,
           origin = transform.origin, scale = transform.scale.x, rotate = transform.rotate, tx = transform.translate.x, ty = transform.translate.y,
           p = { x: point.pageX - o.left, y: point.pageY - o.top }, offsetx = origin.x - p.x, offsety = origin.y - p.y,
@@ -129,8 +124,8 @@
           y: f3(ny - ty/scale)
         }
       },
-      setOrigin: function(point){
-        var transform = this.transform, preorigin = transform.origin, matrix = getMatrix.call(this), origin = this.getOrigin(point);
+      setPointAsOrigin: function(point){
+        var transform = this.transform, preorigin = transform.origin, matrix = getMatrix(this.element), origin = this.getPointOrigin(point);
         var origin_gridx_inpreorigin = preorigin.x - origin.x, origin_gridy_inpreorigin = preorigin.y - origin.y,
           origin_matrix_inpreorigin = [ [-origin_gridx_inpreorigin], [-origin_gridy_inpreorigin], [1] ], origin_position_inpreorigin = Matrix.mutiply(matrix, origin_matrix_inpreorigin),
           origin_positionx_inpreorigin = origin_position_inpreorigin[0][0] + preorigin.x, origin_positiony_inpreorigin = origin_position_inpreorigin[1][0] + preorigin.y,
@@ -148,13 +143,13 @@
       scale: function(increase, transition){
         if(!increase) return;
 
-        var json = this.transform.json, s = json.scale.x, ns = increase*s;
+        var scale = this.transform.scale.x, ns = increase*scale;
         render.call(this, { scale: ns }, transition);
       },
       rotate: function(rotateangle, transition){
         if(!rotateangle) return;
 
-        var json = this.transform.json, r = json.rotate, nr = r + rotateangle;
+        var rotate = this.transform.rotate, nr = rotate + rotateangle;
         render.call(this, { rotate: nr }, transition);
       }
     }
@@ -189,7 +184,7 @@
     };
 
     if(touches.length == 2){
-      var d = distance(touches[0], touches[1]), x = d.offsetx, y = d.offsety, length = d.length,
+      var finger1 = touches[0], finger2 = touches[1], d = distance(finger1, finger2), x = d.offsetx, y = d.offsety, length = d.length,
         offsetx = Math.sqrt(length*length/4 - y*y/4),
         top = finger1.pageY + y/2, left = finger1.pageX + (x < 0 ? -offsetx : offsetx);
 
@@ -206,34 +201,35 @@
     var arg = [ current, start ], events = this.events, elm = this.element, target = start.events[0].target, events = this.events[name], fn;
 
     if(events){
-      if(target == elm){
-        fn = events[rootgid];
-      }else{
-        outer: while(target != elm){
-          var gid = target.getAttribute('__gid');
-          if(gid){
-            fn = events[gid];
-            break outer;
-          }else{
-            var cls = (target.className || ''), arr = cls.split(' ');
+      outer: while(target != elm){
+        var gid = target.getAttribute('__gid');
+        if(gid){
+          fn = events[gid];
+          break outer;
+        }else{
+          var cls = (target.className || ''), arr = cls.split(' ');
 
-            inner:for(var i = 0; i < arr.length; i++){
-              var cl = arr[i];
-              if(cl && events[cl]){
-                target.setAttribute('__gid', cl);
-                fn = events[cl];
-                break inner;
-              }
+          inner:for(var i = 0; i < arr.length; i++){
+            var cl = arr[i];
+            if(cl && events[cl]){
+              target.setAttribute('__gid', cl);
+              fn = events[cl];
+              break inner;
             }
-
-            if(fn) break outer;
-            else target = target.parentNode;
           }
+
+          if(fn) break outer;
+          else target = target.parentNode;
         }
       }
+
+      fn = fn || events[rootgid];
     }
 
-    if(fn) fn.apply(new E(target), arg);
+    if(fn){
+      fn.$ = fn.$ || new E(target);
+      fn.apply(fn.$, arg);
+    }
   }
 
 
@@ -262,7 +258,7 @@
           index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
           rotate = direction * totalrotate;
 
-        if(!name) name = enabled('pinch') && enabled('rotate') ? (Math.abs(scale - 1) > 0.01 || Math.abs(rotate) < .2 ? 'pinch' : 'rotate') : (enabled('pinch') ? 'pinch' : 'rotate');
+        if(!name) name = enabled('pinch') && enabled('rotate') ? (Math.abs(scale - 1) > 0.02 ? 'pinch' : 'rotate') : (enabled('pinch') ? 'pinch' : 'rotate');
 
         if(name == 'pinch'){
           if(!mark) mark = 1;
@@ -275,7 +271,7 @@
         }
       }
 
-      trigger.call(that, name, moveInfo, startInfo);
+      name && trigger.call(that, name, moveInfo, startInfo);
       animation(calculate);
     }
 
