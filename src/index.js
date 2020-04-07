@@ -71,10 +71,10 @@
       if(rt.length && rs.length && rr.length && ro.length){
         var t = rt[1].split(','), s = rs[1], r = rr[1], o = ro[1].split(' ');
         transform = {
-          translate:{ x: parseInt(t[0]), y: parseInt(t[1]) },
-          scale: { x:parseInt(s), y:parseInt(s) },
-          rotate: parseInt(r),
-          origin: { x: parseInt(o[0]) , y: parseInt(o[1]) },
+          translate:{ x: f3(t[0]), y: f3(t[1]) },
+          scale: { x:f3(s), y:f3(s) },
+          rotate: f3(r),
+          origin: { x: f3(o[0]) , y: f3(o[1]) },
         }
       }else{
         var styles = window.getComputedStyle(elm, false),
@@ -156,6 +156,7 @@
         if(!increase) return;
 
         var scale = this.transform.scale.x, ns = increase*scale;
+        console.log(increase, scale)
         render.call(this, { scale: ns }, transition);
       },
       rotate: function(rotateangle, transition){
@@ -267,14 +268,14 @@
           index = starttouches[0].pageY < starttouches[1].pageY ? 0 : 1, direction = movetouches[index].pageX - starttouches[index].pageX >= 0 ? 1 : -1,
           rotate = direction * totalrotate;
 
-        if(!name) name = enabled('pinch') && enabled('rotate') ? (Math.abs(scale - 1) > 0.02 ? 'pinch' : 'rotate') : (enabled('pinch') ? 'pinch' : 'rotate');
+        if(!name) name = enabled('pinch') && enabled('rotate') ? (Math.abs(scale - 1) > 0.01 ? 'pinch' : 'rotate') : (enabled('pinch') ? 'pinch' : 'rotate');
 
         if(name == 'pinch'){
-          if(!mark) mark = 1;
+          if(mark == undefined) mark = 1;
           moveInfo.scale = scale/mark;
           mark = scale;
         }else if(name == 'rotate'){
-          if(!mark) mark = 0;
+          if(mark == undefined) mark = 0;
           moveInfo.rotate = rotate - mark;
           mark = rotate;
         }
