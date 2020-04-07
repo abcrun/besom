@@ -239,6 +239,8 @@
       fn = fn || events[rootgid];
     }
 
+    //if(fn) fn.apply(new E(target), arg);
+
     if(fn){
       fn.$ = fn.$ || new E(target);
       fn.apply(fn.$, arg);
@@ -408,6 +410,9 @@
   return {
     create: function(elm){
       return new Gesture(elm);
+    },
+    element: function(elm){
+      return new E(elm);
     }
   };
 
