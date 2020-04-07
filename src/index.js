@@ -66,11 +66,24 @@
 
     //getTransform
     var getTransform = function(elm){
-      var styles = window.getComputedStyle(elm, false),
-        matrix = Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)'), origin = styles['transform-origin'].split(' '),
-        transform = Matrix.parse(matrix), originx = f3(origin[0]), originy = f3(origin[1]);
+      var cssText = elm.style ? elm.style.cssText : '', transform;
+        rt = /translate\((.+)\)/i.exec(cssText) || [], rs = /scale\((.+)\)/i.exec(cssText) || [], rr = /rotate\((.+)\)/i.exec(cssText) || [], ro = /origin:([^;]+)/i.exec(cssText) || [];
+      if(rt.length && rs.length && rr.length && ro.length){
+        var t = rt[1].split(','), s = rs[1], r = rr[1], o = ro[1].split(' ');
+        transform = {
+          translate:{ x: parseInt(t[0]), y: parseInt(t[1]) },
+          scale: { x:parseInt(s), y:parseInt(s) },
+          rotate: parseInt(r),
+          origin: { x: parseInt(o[0]) , y: parseInt(o[1]) },
+        }
+      }else{
+        var styles = window.getComputedStyle(elm, false),
+          matrix = Matrix.create(styles['transform'] != 'none' ? styles['transform'] : 'matrix(1,0,0,1,0,0)'), origin = styles['transform-origin'].split(' '),
+          transform = Matrix.parse(matrix), originx = f3(origin[0]), originy = f3(origin[1]);
 
-      transform.origin = { x: originx, y: originy }
+        transform.origin = { x: originx, y: originy };
+      }
+
       return transform;
     }
 
