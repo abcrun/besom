@@ -67,7 +67,7 @@
     //getTransform
     var getTransform = function(elm){
       var cssText = elm.style ? elm.style.cssText : '', transform;
-        rt = /translate\((.+)\)/i.exec(cssText) || [], rs = /scale\((.+)\)/i.exec(cssText) || [], rr = /rotate\((.+)\)/i.exec(cssText) || [], ro = /origin:([^;]+)/i.exec(cssText) || [];
+        rt = /translate\((.+)\)/i.exec(cssText) || [], rs = /scale\((.+)\)/i.exec(cssText) || [], rr = /rotate\((.+)\)/i.exec(cssText) || [], ro = /origin:\s*([^;]+)/i.exec(cssText) || [];
       if(rt.length && rs.length && rr.length && ro.length){
         var t = rt[1].split(','), s = rs[1], r = rr[1], o = ro[1].split(' ');
         transform = {
@@ -90,13 +90,12 @@
     //render
     var render = function(opt, transition){
       var elm = this.element, cssText = elm.style.cssText || '', s = this.transform, transition = transition || '0s',
-        origin = opt.origin || s.origin, translate = opt.translate || s.translate, scale = opt.scale || s.scale.x, rotate = opt.rotate || s.rotate,
+        torigin = opt.origin || s.origin, translate = opt.translate || s.translate, scale = opt.scale || s.scale.x, rotate = opt.rotate || s.rotate,
         transition = '-webkit-transition:' + transition + ';',
         transform = '-webkit-transform: translate(' + f3(translate.x) + 'px, ' + f3(translate.y) + 'px) scale(' + f3(scale) + ') rotate(' + f3(rotate) + 'deg);',
-        origin = '-webkit-transform-origin:' + f3(origin.x) + 'px ' + f3(origin.y) + 'px;';
+        origin = '-webkit-transform-origin:' + f3(torigin.x) + 'px ' + f3(torigin.y) + 'px;';
 
       elm.style.cssText = cssText + ';' + transition + transform + origin;
-      this.transform = { translate: translate, rotate: rotate, scale:{ x: scale, y: scale }, origin: origin };
     }
 
     //constructor
@@ -115,8 +114,8 @@
         return { left: left, top: top }
       },
       getPointOrigin: function(point){
-        var o = this.offset(), transform = this.transform, toradian = Math.PI/180,
-          origin = transform.origin, scale = transform.scale.x, rotate = transform.rotate, tx = transform.translate.x, ty = transform.translate.y,
+        var o = this.offset(), transform = this.transform, toradian = Math.PI/180, matrix = getMatrix(this.element), json = Matrix.parse(matrix),
+          origin = transform.origin, scale = transform.scale.x, rotate = transform.rotate, tx = json.translate.x, ty = json.translate.y,
           p = { x: point.pageX - o.left, y: point.pageY - o.top }, offsetx = origin.x - p.x, offsety = origin.y - p.y,
           point_origin_distance = Math.sqrt(offsetx*offsetx + offsety*offsety)/scale, angle = Math.atan(Math.abs(offsety/offsetx))/toradian, nx, ny;
 
@@ -239,12 +238,7 @@
       fn = fn || events[rootgid];
     }
 
-    //if(fn) fn.apply(new E(target), arg);
-
-    if(fn){
-      fn.$ = fn.$ || new E(target);
-      fn.apply(fn.$, arg);
-    }
+    if(fn) fn.apply(new E(target), arg);
   }
 
 
