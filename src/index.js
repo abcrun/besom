@@ -119,7 +119,7 @@
           p = { x: point.pageX - o.left, y: point.pageY - o.top }, offsetx = origin.x - p.x, offsety = origin.y - p.y,
           point_origin_distance = Math.sqrt(offsetx*offsetx + offsety*offsety)/scale, angle = Math.atan(Math.abs(offsety/offsetx))/toradian, nx, ny;
 
-        if(offsety > 0 && offsetx > 0) toangle = angle - rotate;
+        if(offsety >= 0 && offsetx >= 0) toangle = angle - rotate;
         if(offsety > 0 && offsetx < 0) toangle = 180 - angle - rotate;
         if(offsety < 0 && offsetx > 0) toangle = angle + rotate;
         if(offsety < 0 && offsetx < 0) toangle = angle - rotate;
@@ -247,15 +247,12 @@
   var bindEvent = function(){
     var that = this, elm = this.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var name, mark, preMove;
+    var name, mark, movetopindex;
 
     var calculate = function(){
       if(!startInfo || !moveInfo) return;
 
-
       var starttouches = startInfo.events, movetouches = moveInfo.events, p0 = distance(starttouches[0], movetouches[0]);
-      if(!preMove) preMove = starttouches[0];
-
       if(startInfo.count == 1 && moveInfo.count == 1 && enabled('slide') && p0.length > 3){
         var offset = { x: p0.offsetx, y: p0.offsety };
         if(!mark) mark = { x: 0, y: 0 };
@@ -268,8 +265,10 @@
         var p1 = distance(movetouches[1], starttouches[1]), rotatelength0 = p0.length, rotatelength1 = p1.length,
           rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
           rotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian,
-          center = startInfo.center, mcy = movetouches[0].pageY - center.pageY, mpx = movetouches[0].pageX - preMove.pageX;
-        if((mcy > 0 && mpx > 0) || (mcy < 0 && mcx < 0)) rotate = -rotate;
+          center = startInfo.center, stopindex = starttouches[0].pageY <= center.pageY ? 0 : 1;
+        if(movetopindex == undefined) movetopindex = movetouches[0].pageY <= center.pageY ? 0 : 1
+
+        if((movetouches[movetopindex].pageY <= center.pageY && movetouches[movetopindex].pageX < starttouches[stopindex].pageX) || (movetouches[movetopindex].pageY > center.pageY && movetouches[movetopindex].pageX < starttouches[stopindex == 0 ? 1 : 0].pageX)) rotate = -rotate;
 
         if(!name){
           if(enabled('pinch') && enabled('rotate')){
@@ -289,7 +288,6 @@
           if(mark == undefined) mark = 0;
           moveInfo.rotate = rotate - mark;
           mark = rotate;
-          preMove = movetouches[0];
         }
       }
 
@@ -316,10 +314,13 @@
 
 
     //addEvent
-    var startInfo, moveInfo, isanimation = false;
-    var start = function(e){
+    var startInfo, moveInfo, isanimation = false, die = function(e){
       e.preventDefault();
+      e.stopPropagation();
+    }
+    var start = function(e){
       startInfo = Evt(e);
+      die(e);
 
       trigger.call(that, 'start', startInfo, startInfo);
 
@@ -328,8 +329,8 @@
       elm.addEventListener(istouch ? 'touchcancel' : 'mouseleave', end, false);
     }
     var move = function(e){
-      e.preventDefault();
       moveInfo = Evt(e);
+      die(e);
 
       if(!isanimation && (enabled('slide') || enabled('roate') || enabled('pinch'))){
         animation(calculate);
@@ -339,6 +340,7 @@
 
     var end = function(e){
       e.preventDefault();
+      die(e);
       if(e.touches && e.touches.length != 0) return;
 
       var starttouches = startInfo.events, endInfo = Evt(e), endtouches = endInfo.events, endTime = endInfo.time, duration = endTime - startInfo.time;
@@ -352,7 +354,7 @@
       isanimation = false;
       name = undefined;
       mark = undefined;
-      preMove = undefined;
+      movetopindex = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
