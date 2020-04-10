@@ -319,8 +319,8 @@
       e.stopPropagation();
     }
     var start = function(e){
-      startInfo = Evt(e);
       die(e);
+      startInfo = Evt(e);
 
       trigger.call(that, 'start', startInfo, startInfo);
 
@@ -329,8 +329,8 @@
       elm.addEventListener(istouch ? 'touchcancel' : 'mouseleave', end, false);
     }
     var move = function(e){
-      moveInfo = Evt(e);
       die(e);
+      moveInfo = Evt(e);
 
       if(!isanimation && (enabled('slide') || enabled('roate') || enabled('pinch'))){
         animation(calculate);
@@ -339,9 +339,8 @@
     }
 
     var end = function(e){
-      e.preventDefault();
-      die(e);
       if(e.touches && e.touches.length != 0) return;
+      die(e);
 
       var starttouches = startInfo.events, endInfo = Evt(e), endtouches = endInfo.events, endTime = endInfo.time, duration = endTime - startInfo.time;
       endInfo.duration = duration;
@@ -370,7 +369,6 @@
     this.element = elm || document.body;
     this.events = {};
     this.enabled = [ 'tap' ]; //default
-    this.current = null; //current gesture
 
     this.element.setAttribute('__gid', rootgid);
     this.__evtfn = bindEvent.call(this);//return event function in order to destroy
