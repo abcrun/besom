@@ -183,7 +183,7 @@
     return {
       offsetx: x,
       offsety: y,
-      length: parseInt(Math.sqrt(x*x + y*y))
+      length: Math.sqrt(x*x + y*y)
     }
   }
 
@@ -193,7 +193,6 @@
       time:new Date().getTime(),
       count: touches.length,
       events: touches,
-      points: [ {pageX: touches[0].pageX, pageY: touches[0].pageY} ]
     };
 
     if(touches.length == 2){
@@ -202,7 +201,6 @@
         top = finger1.pageY + y/2, left = finger1.pageX + (x < 0 ? -offsetx : offsetx);
 
       infos.length = length;
-      infos.points.push({pageX: touches[1].pageX, pageY: touches[1].pageY});
       infos.center = { pageX: left, pageY: top };
     }
 
@@ -247,7 +245,7 @@
   var bindEvent = function(){
     var that = this, elm = this.element;
     var enabled = function(g){ return that.enabled.indexOf(g) > -1 };
-    var name, mark, movetopindex;//record the top point index when move
+    var name, mark;
 
     var calculate = function(){
       if(!startInfo || !moveInfo) return;
@@ -264,11 +262,7 @@
         var startlength = startInfo.length, movelength = moveInfo.length, toradian = Math.PI/180, scale = movelength/startlength;
         var p1 = distance(movetouches[1], starttouches[1]), rotatelength0 = p0.length, rotatelength1 = p1.length,
           rotatelength = rotatelength0 + rotatelength1, rvalue = (startlength*startlength + movelength*movelength - rotatelength*rotatelength)/(2*startlength*movelength),
-          rotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian,
-          center = startInfo.center, stopindex = starttouches[0].pageY <= center.pageY ? 0 : 1;
-        if(movetopindex == undefined) movetopindex = movetouches[0].pageY <= center.pageY ? 0 : 1
-
-        if((movetouches[movetopindex].pageY <= center.pageY && movetouches[movetopindex].pageX < starttouches[stopindex].pageX) || (movetouches[movetopindex].pageY > center.pageY && movetouches[movetopindex].pageX < starttouches[stopindex == 0 ? 1 : 0].pageX)) rotate = -rotate;
+          rotate = Math.acos(rvalue < -1 ? -1 : (rvalue > 1 ? 1 : rvalue))/toradian;
 
         if(!name){
           if(enabled('pinch') && enabled('rotate')){
@@ -284,10 +278,18 @@
           if(mark == undefined) mark = 1;
           moveInfo.scale = scale/mark;
           mark = scale;
-        }else if(name == 'rotate'){
+        }else if(name == 'rotate' && rotate != undefined){
           if(mark == undefined) mark = 0;
+
+          var center = startInfo.center,s0 = starttouches[0], e0 = movetouches[0], ds0 = distance(center, s0), de0 = distance(center, e0),
+            s1 = starttouches[1], e1 = movetouches[1], ds1 = distance(center, s1), de1 = distance(center, e1),
+            d0 = ds0.offsetx * de0.offsety - ds0.offsety * de0.offsetx, d1 = ds1.offsetx * de1.offsety - ds1.offsety * de1.offsetx;
+
+          rotate = (d0 < 0 || d1 < 0) ? -rotate : rotate;
           moveInfo.rotate = rotate - mark;
           mark = rotate;
+
+          document.getElementById('test').innerHTML = '24##d0' +  d0 + '##d1:' + d1;
         }
       }
 
@@ -353,7 +355,6 @@
       isanimation = false;
       name = undefined;
       mark = undefined;
-      movetopindex = undefined;
 
       elm.removeEventListener(istouch ? 'touchmove' : 'mousemove', move, false);
       elm.removeEventListener(istouch ? 'touchend' : 'mouseup', end, false)
