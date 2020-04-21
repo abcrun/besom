@@ -292,8 +292,6 @@
           rotate = (d0 < 0 || d1 < 0) ? -rotate : rotate;
           moveInfo.rotate = rotate - mark;
           mark = rotate;
-
-          document.getElementById('test').innerHTML = '24##d0' +  d0 + '##d1:' + d1;
         }
       }
 
