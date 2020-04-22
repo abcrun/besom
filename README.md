@@ -20,7 +20,7 @@ A Javascript Library For Multi-Touch and Mouse Event Gestures (tap, longtap, dou
   g.on('slideEnd', function(){ console.log('slideEnd')  });
 
   g.on('start', function(e){
-    if(e.counts == 2) this.setPointAsOrigin(e.center)
+    if(e.count == 2) this.setPointAsOrigin(e.center)
   })
   g.on('pinch', function(e){ this.scale(e.scale) });
   g.on('pinchEnd', function(){ console.log('pinchEnd') });
@@ -29,7 +29,7 @@ A Javascript Library For Multi-Touch and Mouse Event Gestures (tap, longtap, dou
 
 
 
-See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
+See Demos [Click Here](http://blog.woritd.com/besom/index.html)
 
 ### Supported Gestures
 
