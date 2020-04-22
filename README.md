@@ -1,16 +1,15 @@
 ### Besom 
 
-A Javascript Library For Multi-Touch or Mouse Event Gestures (tap, longtap, doubletap, pinch, slide, rotate)
+A Javascript Library For Multi-Touch and Mouse Event Gestures (tap, longtap, doubletap, pinch, slide, rotate)
 
 ### Installation
 
-**`npm install besom --save` ** or **`yarn add besom`** or **cdn **  [https://cdn.jsdelivr.net/npm/besom/dist/besom.min.js](https://cdn.jsdelivr.net/npm/besom/dist/besom.min.js)
+`npm install besom --save` or `yarn add besom` or cdn  [https://cdn.jsdelivr.net/npm/besom/dist/besom.min.js](https://cdn.jsdelivr.net/npm/besom/dist/besom.min.js)
 
 ### Usage
 
 ```javascript
-  var Besom = require('besom'), 
-    g = Besom.create(document.getElementById('demo'));
+  var Besom = require('besom'), g = Besom.create(document.getElementById('demo'));
   g.enabe('longtap', 'slide', 'pinch');
 
   //bind Event
@@ -34,16 +33,16 @@ See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 
 ### Supported Gestures
 
-* `tap` 
+* `tap`(enabled default) 
 * `longtap`
 * `doubletap`
 * `slide`
 * `pinch`
 * `rotate`
 
-### Supported Events
+### Bind Event Name
 
-* `tap`(enabled default)
+* `tap`
 * `longtap`
 * `doubletap`
 * `start`
@@ -54,7 +53,7 @@ See Demos [Click Here](https://github.com/abcrun/besom/tree/master/demo)
 * `rotate`
 * `rotateEnd`
 
-### Instace And Methods
+### Instance And Methods
 
 ##### Create Gestures Maintainer
 
@@ -72,10 +71,10 @@ Besom.create(element)
 
    the parameter of the event function - `fn(currentGestureEventObject, startGestureEventObject)`
 
-     * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object.
-     * `this` - refers to a transformable element. More details see bellow.
+     * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object
+     * `this` - refers to a transformable element. More details see bellow
 
-* delegate(className, event, fn) - delegate the gesture of the child element which has the className `class`. If use this method
+* delegate(className, event, fn) - delegate the gesture of the child element which has the className `className`
 
 * destroy() - destroy the gesture manager and events
 
@@ -92,7 +91,7 @@ Besom.element(element)
 * element - the html element
 * transform - the transform property of the element
 * offset() - return the element offset.left and offset.top in the page
-* getPointOrigin(point) - caculate the point({pageX:number, pageY:number)  in the element matrix
+* getPointOrigin(point) - caculate the point({pageX:number, pageY:number) in the element matrix
 * setPointAsOrigin(point) - set the point({pageX:number, pageY:number}) as the element origin
 * translate(offset, duration) - translate offset.x as horizon and offset.y as vertical distance in duration time.
 * scale(scale, duration)
