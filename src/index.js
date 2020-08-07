@@ -105,13 +105,13 @@
     }
     $.prototype = {
       offset: function(){
-        var elm = this.element, left = elm.offsetLeft, top = elm.offsetTop;
+        var elm = this.element, left = elm.offsetLeft, top = elm.offsetTop, width = elm.offsetWidth, height = elm.offsetHeight;
         while(elm.offsetParent){
             var elm = elm.offsetParent;
             left += elm.offsetLeft;
             top += elm.offsetTop;
         }
-        return { left: left, top: top }
+        return { left: left, top: top, width: width, height: height }
       },
       getPointOrigin: function(point){
         var o = this.offset(), transform = this.transform, toradian = Math.PI/180, matrix = getMatrix(this.element), json = Matrix.parse(matrix),
@@ -160,7 +160,6 @@
         if(!increase) return;
 
         var scale = this.transform.scale.x, ns = increase*scale;
-        console.log(increase, scale)
         render.call(this, { scale: ns }, transition);
       },
       rotate: function(rotateangle, transition){
@@ -168,6 +167,25 @@
 
         var rotate = this.transform.rotate, nr = rotate + rotateangle;
         render.call(this, { rotate: nr }, transition);
+      },
+      pos: function(params, transition) {
+        var elm = this.element, cssText = elm.style.cssText || '', transition = transition || '0s',
+          left = params.left, top = params.top, width = params.width, height = params.height,
+          pos = '-webkit-transition:' + transition +  ';', tp = '';
+
+        if(typeof left != 'undefined'){
+          pos += 'left:' + left + 'px;';
+          tp = 'left';
+        }
+        if(typeof top != 'undefined'){
+          pos += 'top:' + top + 'px;';
+          tp += ',top;';
+        }
+        if(typeof width != 'undefined') pos += 'width:' + width + 'px;';
+        if(typeof height != 'undefined') pos += 'height:' + height + 'px;';
+
+        console.log(cssText + ';' + pos + tp ? ('-webkit-transition-property:' + tp) : '')
+        elm.style.cssText = cssText + ';' + pos + (tp ? ('-webkit-transition-property:' + tp) : '');
       }
     }
 
@@ -295,6 +313,8 @@
         }
       }
 
+      moveInfo.total = mark;
+
       name && trigger.call(that, name, moveInfo, startInfo);
       animation(calculate);
     }
@@ -349,7 +369,7 @@
       var starttouches = startInfo.events, endInfo = Evt(e), endtouches = endInfo.events, endTime = endInfo.time, duration = endTime - startInfo.time;
       endInfo.duration = duration;
 
-      if(name) trigger.call(that, name + 'End', startInfo, endInfo);
+      if(name) trigger.call(that, name + 'End', endInfo, startInfo);
       else tap.call(that, endInfo, startInfo);
 
       startInfo = null;

@@ -10,7 +10,7 @@ A Javascript Library For Multi-Touch and Mouse Event Gestures (tap, longtap, dou
 
 ```javascript
   var Besom = require('besom'), g = Besom.create(document.getElementById('demo'));
-  g.enabe('longtap', 'slide', 'pinch');
+  g.enable('longtap', 'slide', 'pinch');
 
   //bind Event
   g.on('tap', function(){ console.log('tap') }); //tap event is enabled by default
@@ -96,5 +96,6 @@ Besom.element(element)
 * translate(offset, duration) - translate offset.x as horizon and offset.y as vertical distance in duration time.
 * scale(scale, duration)
 * rotate(rotate, duration)
+* pos(params, duration) - set the element to the postion(different to translate) with params({ left, top, width, height }) in duration time.
 
 
