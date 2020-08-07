@@ -258,7 +258,12 @@
       fn = fn || events[rootgid];
     }
 
-    if(fn) fn.apply(new E(target), arg);
+    if(fn){
+      var telm = new E(target);
+
+      arg.push(telm);
+      fn.apply(telm, arg);
+    }
   }
 
 
