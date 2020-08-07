@@ -184,7 +184,6 @@
         if(typeof width != 'undefined') pos += 'width:' + width + 'px;';
         if(typeof height != 'undefined') pos += 'height:' + height + 'px;';
 
-        console.log(cssText + ';' + pos + tp ? ('-webkit-transition-property:' + tp) : '')
         elm.style.cssText = cssText + ';' + pos + (tp ? ('-webkit-transition-property:' + tp) : '');
       }
     }
