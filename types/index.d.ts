@@ -1,8 +1,8 @@
 declare namespace Besom {
-  static create(elm: HTMLElement): maintaince;
-  static element(elm: HTMLElement): gelement;
+  create = (elm: HTMLElement) => maintaince;
+  element = (elm: HTMLElement) => gelement;
 
-  interface cb = (currentEvt: any, startEvt: any) => void;
+  type cb = (currentEvt: any, startEvt: any) => void;
 
   interface maintaince {
     enable: (firstGesture:string, ...restGestures:string[]) => void;
