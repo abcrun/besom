@@ -69,10 +69,10 @@ Besom.create(element)
 
 * on(event, fn) - add gesture event function 
 
-   the parameter of the event function - `fn(currentGestureEventObject, startGestureEventObject)`
+   the parameter of the event callback function - `fn(currentGestureEventObject, startGestureEventObject, currentTransformableElement)`
 
-     * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object
-     * `this` - refers to a transformable element. More details see bellow
+     * `currentGestureEventObject` and `startGestureEventObject` is the formatted event object with caculated datas of the gestures
+     * `currentTransformableElement` or `this` in the callback function `fn` - refers to the transformable element. More details see bellow
 
 * delegate(className, event, fn) - delegate the gesture of the child element which has the className `className`
 
@@ -96,6 +96,7 @@ Besom.element(element)
 * translate(offset, duration) - translate offset.x as horizon and offset.y as vertical distance in duration time.
 * scale(scale, duration)
 * rotate(rotate, duration)
-* pos(params, duration) - set the element to the postion(different to translate) with params({ left, top, width, height }) in duration time.
+* position() - return the left and top styles of the element.
+* move(params, duration) - move the element to the postion(different to translate) with params({ left, top, width, height }) in duration time.
 
 

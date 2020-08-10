@@ -1,10 +1,10 @@
 declare module 'besom' {
-  export function create(elm: HTMLElement) : maintaince;
-  export function element(elm: HTMLElement) : gelement;
+  export function create(elm: HTMLElement) : maintainer;
+  export function element(elm: HTMLElement) : gElement;
 
-  type cb = (currentEvt: any, startEvt: any) => void;
+  type cb = (currentEvt: any, startEvt: any, gElement: gElement) => void;
 
-  interface maintaince {
+  interface maintainer {
     enable: (firstGesture:string, ...restGestures:string[]) => void;
     disable: (firstGesture:string, ...restGestures:string[]) => void;
     on: (name: string, cb: cb) => void;
@@ -36,7 +36,7 @@ declare module 'besom' {
     rotate: number;
   }
 
-  interface gelement {
+  interface gElement {
     element: HTMLElement;
     transform: transform;
     offset: () => offset; 
@@ -45,6 +45,7 @@ declare module 'besom' {
     translate: (offset: { x: number, y: number }, transition?: string) => void;
     scale: (increase: number, transition?: string) => void;
     rotate: (rotate: number, transition?: string) => void;
-    pos: (params: { left?: number; top?: number; width?: number; height?: number }, transition?: string) => void;
+    move: (params: { left?: number; top?: number; width?: number; height?: number }, transition?: string) => void;
+    position: () => { left: number; top: number }
   }
 }

@@ -168,7 +168,16 @@
         var rotate = this.transform.rotate, nr = rotate + rotateangle;
         render.call(this, { rotate: nr }, transition);
       },
-      pos: function(params, transition) {
+      position: function() {
+        var elm = this.element, styles = window.getComputedStyle(elm, false),
+          left = parseInt(styles.left), top = parseInt(styles.top);
+
+        return {
+          left: isNaN(left) ? 0 : left,
+          top: isNaN(top) ? 0 : top
+        }
+      },
+      move: function(params, transition) {
         var elm = this.element, cssText = elm.style.cssText || '', transition = transition || '0s',
           left = params.left, top = params.top, width = params.width, height = params.height,
           pos = '-webkit-transition:' + transition +  ';', tp = '';
