@@ -1,8 +1,9 @@
 {
   "name": "besom",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A Javascript Library For Multi-Touch or Mouse Event Gestures (tap, longtap, doubletap, pinch, slide, rotate)",
-  "main": "src/index.js",
+  "main": "dist/besom.min.js",
+  "module": "src/index.js",
   "types": "types/index.d.ts",
   "scripts": {
     "build": "rm -fr dist && gulp && mv dist/index.js dist/besom.min.js",
